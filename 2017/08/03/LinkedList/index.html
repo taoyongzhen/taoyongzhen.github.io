@@ -77,7 +77,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Android, 程序猿" />
+  <meta name="keywords" content="Java,Collection," />
 
 
 
@@ -93,13 +93,18 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="陶永臻">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="概述LinkedList是线性表中的链式存储结构的顺序表。   基本元素类申明123public class LinkedList&amp;lt;E&amp;gt;    extends AbstractSequentialList&amp;lt;E&amp;gt;    implements List&amp;lt;E&amp;gt;, Deque&amp;lt;E&amp;gt;, Cloneable, java.io.Serializable  继承Ab">
+<meta name="keywords" content="Java,Collection">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LinkedList源码分析">
+<meta property="og:url" content="http://yoursite.com/2017/08/03/LinkedList/index.html">
 <meta property="og:site_name" content="陶永臻">
+<meta property="og:description" content="概述LinkedList是线性表中的链式存储结构的顺序表。   基本元素类申明123public class LinkedList&amp;lt;E&amp;gt;    extends AbstractSequentialList&amp;lt;E&amp;gt;    implements List&amp;lt;E&amp;gt;, Deque&amp;lt;E&amp;gt;, Cloneable, java.io.Serializable  继承Ab">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-08-03T14:37:51.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="陶永臻">
+<meta name="twitter:title" content="LinkedList源码分析">
+<meta name="twitter:description" content="概述LinkedList是线性表中的链式存储结构的顺序表。   基本元素类申明123public class LinkedList&amp;lt;E&amp;gt;    extends AbstractSequentialList&amp;lt;E&amp;gt;    implements List&amp;lt;E&amp;gt;, Deque&amp;lt;E&amp;gt;, Cloneable, java.io.Serializable  继承Ab">
 
 
 
@@ -127,13 +132,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2017/08/03/LinkedList/"/>
 
 
 
 
 
-  <title>陶永臻</title>
+  <title>LinkedList源码分析 | 陶永臻</title>
   
 
 
@@ -158,9 +163,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-   page-home 
- ">
+  <div class="container sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -253,9 +256,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -281,9 +284,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/08/03/LinkedList/" itemprop="url">LinkedList源码分析</a></h1>
+          <h1 class="post-title" itemprop="name headline">LinkedList源码分析</h1>
         
 
         <div class="post-meta">
@@ -363,9 +364,7 @@
       
 
       
-        
-          
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>LinkedList是线性表中的链式存储结构的顺序表。  </p>
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>LinkedList是线性表中的链式存储结构的顺序表。  </p>
 <h2 id="基本元素"><a href="#基本元素" class="headerlink" title="基本元素"></a>基本元素</h2><h3 id="类申明"><a href="#类申明" class="headerlink" title="类申明"></a>类申明</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LinkedList</span>&lt;<span class="title">E</span>&gt;</span></div><div class="line">    <span class="keyword">extends</span> <span class="title">AbstractSequentialList</span>&lt;<span class="title">E</span>&gt;</div><div class="line">    <span class="keyword">implements</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt;, <span class="title">Deque</span>&lt;<span class="title">E</span>&gt;, <span class="title">Cloneable</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span></div></pre></td></tr></table></figure>
 <ul>
 <li>继承AbstractSequentialList，获取list基本操作  </li>
@@ -566,407 +565,74 @@
 </ul>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://www.zybuluo.com/kiraSally/note/826362" target="_blank" rel="external">https://www.zybuluo.com/kiraSally/note/826362</a>  </p>
 
-          
+      
+    </div>
+
+    <div>
+      
         
+
       
     </div>
 
     <div>
       
-    </div>
+        
 
-    <div>
       
     </div>
 
     <div>
+      
+        
+
       
     </div>
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/01/ArrayList源码分析/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="taoyongzhen">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="陶永臻">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/08/01/ArrayList源码分析/" itemprop="url">ArrayList源码分析</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-01T21:13:26+08:00">
-                2017-08-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
+        <div class="post-tags">
           
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-                  ， 
-                
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/List/" itemprop="url" rel="index">
-                    <span itemprop="name">List</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
+            <a href="/tags/Java/" rel="tag"># Java</a>
           
-
+            <a href="/tags/Collection/" rel="tag"># Collection</a>
           
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>ArrayList基于数组实现，使用一个动态数组保存数据，其容量自动增加。  </p>
-<h2 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h2><ul>
-<li>DEFAULT_CAPACITY：默认初始容量10，向其添加元素后，创建默认大小为10的数组。 </li>
-<li>elementData：ArrayList使用该数组保存元素，使用transient关键字修饰，在序列化时，将该字段忽略。  </li>
-<li>EMPTY_ELEMENTDATA：空数组，创建大小为0的ArrayList时，使用其初始化elementData。</li>
-<li>DEFAULTCAPACITY_EMPTY_ELEMENTDATA：空数组，使用缺省的构造函数时，使用其初始化elementData。与EMPTY_ELEMENTDATA区别是：ArrayList添加第一个元素时，将其容量扩充到DEFAULT_CAPACITY。这里需要<strong>注意</strong>：使用延迟初始化元素的存储数组，已达到内存优化。  </li>
-<li>size：元素个数。  </li>
-<li>modCount：<strong>结构性</strong>修改次数，结构性修改是指改变元素个数的修改，例如add等操作。  </li>
-</ul>
-<h2 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h2><h3 id="增加操作"><a href="#增加操作" class="headerlink" title="增加操作"></a>增加操作</h3><ul>
-<li>列表结尾添加  </li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Appends the specified element to the end of this list.</div><div class="line">     *</div><div class="line">     * 追加一个元素到集合列表的末尾 </div><div class="line">     * <span class="doctag">@param</span> e element to be appended to this list</div><div class="line">     * <span class="doctag">@return</span> &lt;tt&gt;true&lt;/tt&gt; (as specified by &#123;<span class="doctag">@link</span> Collection#add&#125;)</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">add</span><span class="params">(E e)</span> </span>&#123;</div><div class="line">        ensureCapacityInternal(size + <span class="number">1</span>);  <span class="comment">// Increments modCount!!（结构性修改，modCount加1）必要时进行扩容</span></div><div class="line">        elementData[size++] = e;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<ul>
-<li>指定位置添加  </li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Inserts the specified element at the specified position in this</div><div class="line">     * list. Shifts the element currently at that position (if any) and</div><div class="line">     * any subsequent elements to the right (adds one to their indices).</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> index index at which the specified element is to be inserted</div><div class="line">     * <span class="doctag">@param</span> element element to be inserted</div><div class="line">     * <span class="doctag">@throws</span> IndexOutOfBoundsException &#123;<span class="doctag">@inheritDoc</span>&#125;</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> index, E element)</span> </span>&#123;</div><div class="line">        rangeCheckForAdd(index);<span class="comment">//插入位置校验</span></div><div class="line">        ensureCapacityInternal(size + <span class="number">1</span>);  <span class="comment">// Increments modCount!!</span></div><div class="line">        System.arraycopy(elementData, index, elementData, index + <span class="number">1</span>,</div><div class="line">                         size - index);</div><div class="line">        elementData[index] = element;</div><div class="line">        size++;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<h3 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h3><ul>
-<li>指定位置删除  </li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Removes the element at the specified position in this list.</div><div class="line">     * Shifts any subsequent elements to the left (subtracts one from their</div><div class="line">     * indices).</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> index the index of the element to be removed</div><div class="line">     * <span class="doctag">@return</span> the element that was removed from the list</div><div class="line">     * <span class="doctag">@throws</span> IndexOutOfBoundsException &#123;<span class="doctag">@inheritDoc</span>&#125;</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> E <span class="title">remove</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</div><div class="line">        rangeCheck(index);<span class="comment">// 位置校验</span></div><div class="line">        modCount++;<span class="comment">//结构性修改</span></div><div class="line">        E oldValue = elementData(index);</div><div class="line"></div><div class="line">        <span class="keyword">int</span> numMoved = size - index - <span class="number">1</span>;</div><div class="line">        <span class="keyword">if</span> (numMoved &gt; <span class="number">0</span>)</div><div class="line">            System.arraycopy(elementData, index+<span class="number">1</span>, elementData, index,</div><div class="line">                             numMoved);</div><div class="line">        elementData[--size] = <span class="keyword">null</span>; <span class="comment">// clear to let GC do its work</span></div><div class="line"></div><div class="line">        <span class="keyword">return</span> oldValue;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<ul>
-<li>指定元素删除<br>注意对NULL元素的处理（侧面说明支持NULL元素的加入）；删除所有指定元素。  </li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Removes the first occurrence of the specified element from this list,</div><div class="line">     * if it is present.  If the list does not contain the element, it is</div><div class="line">     * unchanged.  More formally, removes the element with the lowest index</div><div class="line">     * &lt;tt&gt;i&lt;/tt&gt; such that</div><div class="line">     * &lt;tt&gt;(o==null&amp;nbsp;?&amp;nbsp;get(i)==null&amp;nbsp;:&amp;nbsp;o.equals(get(i)))&lt;/tt&gt;</div><div class="line">     * (if such an element exists).  Returns &lt;tt&gt;true&lt;/tt&gt; if this list</div><div class="line">     * contained the specified element (or equivalently, if this list</div><div class="line">     * changed as a result of the call).</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> o element to be removed from this list, if present</div><div class="line">     * <span class="doctag">@return</span> &lt;tt&gt;true&lt;/tt&gt; if this list contained the specified element</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">remove</span><span class="params">(Object o)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (o == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> index = <span class="number">0</span>; index &lt; size; index++)</div><div class="line">                <span class="keyword">if</span> (elementData[index] == <span class="keyword">null</span>) &#123;</div><div class="line">                    fastRemove(index);</div><div class="line">                    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">                &#125;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> index = <span class="number">0</span>; index &lt; size; index++)</div><div class="line">                <span class="keyword">if</span> (o.equals(elementData[index])) &#123;</div><div class="line">                    fastRemove(index);</div><div class="line">                    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">                &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<ul>
-<li>集合删除<br>删除包含在指定集合中所有元素。  </li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Removes from this list all of its elements that are contained in the</div><div class="line">     * specified collection.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> c collection containing elements to be removed from this list</div><div class="line">     * <span class="doctag">@return</span> &#123;<span class="doctag">@code</span> true&#125; if this list changed as a result of the call</div><div class="line">     * <span class="doctag">@throws</span> ClassCastException if the class of an element of this list</div><div class="line">     *         is incompatible with the specified collection</div><div class="line">     * (&lt;a href="Collection.html#optional-restrictions"&gt;optional&lt;/a&gt;)</div><div class="line">     * <span class="doctag">@throws</span> NullPointerException if this list contains a null element and the</div><div class="line">     *         specified collection does not permit null elements</div><div class="line">     * (&lt;a href="Collection.html#optional-restrictions"&gt;optional&lt;/a&gt;),</div><div class="line">     *         or if the specified collection is null</div><div class="line">     * <span class="doctag">@see</span> Collection#contains(Object)</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">removeAll</span><span class="params">(Collection&lt;?&gt; c)</span> </span>&#123;</div><div class="line">        Objects.requireNonNull(c);</div><div class="line">        <span class="keyword">return</span> batchRemove(c, <span class="keyword">false</span>);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<ul>
-<li>集合保留<br>保留指定集合中的所有元素。  </li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Retains only the elements in this list that are contained in the</div><div class="line">     * specified collection.  In other words, removes from this list all</div><div class="line">     * of its elements that are not contained in the specified collection.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> c collection containing elements to be retained in this list</div><div class="line">     * <span class="doctag">@return</span> &#123;<span class="doctag">@code</span> true&#125; if this list changed as a result of the call</div><div class="line">     * <span class="doctag">@throws</span> ClassCastException if the class of an element of this list</div><div class="line">     *         is incompatible with the specified collection</div><div class="line">     * (&lt;a href="Collection.html#optional-restrictions"&gt;optional&lt;/a&gt;)</div><div class="line">     * <span class="doctag">@throws</span> NullPointerException if this list contains a null element and the</div><div class="line">     *         specified collection does not permit null elements</div><div class="line">     * (&lt;a href="Collection.html#optional-restrictions"&gt;optional&lt;/a&gt;),</div><div class="line">     *         or if the specified collection is null</div><div class="line">     * <span class="doctag">@see</span> Collection#contains(Object)</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">retainAll</span><span class="params">(Collection&lt;?&gt; c)</span> </span>&#123;</div><div class="line">        Objects.requireNonNull(c);</div><div class="line">        <span class="keyword">return</span> batchRemove(c, <span class="keyword">true</span>);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<p>上述集合类操作设计到函数：batchRemove(Collection&lt;?&gt; c, boolean complement)。它在O(n)下完成数组的过滤，算法值得学习。  </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">batchRemove</span><span class="params">(Collection&lt;?&gt; c, <span class="keyword">boolean</span> complement)</span> </span>&#123;</div><div class="line">        <span class="keyword">final</span> Object[] elementData = <span class="keyword">this</span>.elementData;</div><div class="line">        <span class="keyword">int</span> r = <span class="number">0</span>, w = <span class="number">0</span>;<span class="comment">//创建两个变量：w 记录需要保留元素可存放位置；r 遍历数组元素索引</span></div><div class="line">        <span class="keyword">boolean</span> modified = <span class="keyword">false</span>;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">for</span> (; r &lt; size; r++)</div><div class="line">                <span class="keyword">if</span> (c.contains(elementData[r]) == complement)</div><div class="line">                    elementData[w++] = elementData[r];</div><div class="line">        &#125; <span class="keyword">finally</span> &#123;</div><div class="line">            <span class="comment">// Preserve behavioral compatibility with AbstractCollection,</span></div><div class="line">            <span class="comment">// even if c.contains() throws.</span></div><div class="line">            <span class="keyword">if</span> (r != size) &#123;</div><div class="line">                System.arraycopy(elementData, r,</div><div class="line">                                 elementData, w,</div><div class="line">                                 size - r);</div><div class="line">                w += size - r;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span> (w != size) &#123;<span class="comment">// 多余元素置NULL，以便gc</span></div><div class="line">                <span class="comment">// clear to let GC do its work</span></div><div class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = w; i &lt; size; i++)</div><div class="line">                    elementData[i] = <span class="keyword">null</span>;</div><div class="line">                modCount += size - w;</div><div class="line">                size = w;</div><div class="line">                modified = <span class="keyword">true</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> modified;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<h3 id="修改"><a href="#修改" class="headerlink" title="修改"></a>修改</h3><p>完成指定位置元素的替换（非结构性修改）  </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Replaces the element at the specified position in this list with</div><div class="line">     * the specified element.</div><div class="line">     * <span class="doctag">@param</span> index index of the element to replace</div><div class="line">     * <span class="doctag">@param</span> element element to be stored at the specified position</div><div class="line">     * <span class="doctag">@return</span> the element previously at the specified position</div><div class="line">     * <span class="doctag">@throws</span> IndexOutOfBoundsException &#123;<span class="doctag">@inheritDoc</span>&#125;</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> E <span class="title">set</span><span class="params">(<span class="keyword">int</span> index, E element)</span> </span>&#123;</div><div class="line">        rangeCheck(index);</div><div class="line"></div><div class="line">        E oldValue = elementData(index);</div><div class="line">        elementData[index] = element;</div><div class="line">        <span class="keyword">return</span> oldValue;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<h3 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h3><p>获取指定位置元素。  </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Returns the element at the specified position in this list.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span>  index index of the element to return</div><div class="line">     * <span class="doctag">@return</span> the element at the specified position in this list</div><div class="line">     * <span class="doctag">@throws</span> IndexOutOfBoundsException &#123;<span class="doctag">@inheritDoc</span>&#125;</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> E <span class="title">get</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</div><div class="line">        rangeCheck(index);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> elementData(index);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<h2 id="扩容操作"><a href="#扩容操作" class="headerlink" title="扩容操作"></a>扩容操作</h2><p>需要明确一下几点：  </p>
-<ul>
-<li>初始默认容量为10；  </li>
-<li>按需扩容：MAX(old_capacity*1.5,size + add_elements);  </li>
-<li>可以预估元素个数，使用ArrayList(int initialCapacity)，避免扩容。  <h2 id="fail-fast"><a href="#fail-fast" class="headerlink" title="fail-fast"></a>fail-fast</h2><h3 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h3>fail-fast也就是“快速失败”，它是Java集合的一种错误检测机制。当多个线程对集合进行结构上的改变的操作时，有可能会产生fail-fast错误。  <h3 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h3>fail-fast产生的原因就在于多线程环境下，部分线程在对 collection 进行迭代时，部分线程对该 collection 进行结构性修改，这时迭代器就会抛出 ConcurrentModificationException 异常信息，从而产生 fail-fast。  </li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Itr</span> <span class="keyword">implements</span> <span class="title">Iterator</span>&lt;<span class="title">E</span>&gt; </span>&#123;</div><div class="line">       <span class="keyword">int</span> cursor;       <span class="comment">// index of next element to return</span></div><div class="line">       <span class="keyword">int</span> lastRet = -<span class="number">1</span>; <span class="comment">// index of last element returned; -1 if no such</span></div><div class="line">       <span class="keyword">int</span> expectedModCount = modCount;<span class="comment">// 迭代初始化时，记录原来结构性修改次数。</span></div><div class="line"></div><div class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123;</div><div class="line">           <span class="keyword">return</span> cursor != size;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</div><div class="line">       <span class="function"><span class="keyword">public</span> E <span class="title">next</span><span class="params">()</span> </span>&#123;</div><div class="line">           checkForComodification();<span class="comment">//迭代过程校验modCount是否修改。多线程环境下，其他线程、或者自身线程调用add等函数，就会导致二者不一致，进而导致fail-fast错误</span></div><div class="line">           <span class="keyword">int</span> i = cursor;</div><div class="line">           ...</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">//迭代器提供的移除方法，一定程度上可以避免fail-fast错误</span></div><div class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">()</span> </span>&#123;</div><div class="line">           <span class="keyword">if</span> (lastRet &lt; <span class="number">0</span>)</div><div class="line">               <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException();</div><div class="line">           checkForComodification();</div><div class="line"></div><div class="line">           <span class="keyword">try</span> &#123;</div><div class="line">               ArrayList.<span class="keyword">this</span>.remove(lastRet);</div><div class="line">               cursor = lastRet;</div><div class="line">               lastRet = -<span class="number">1</span>;</div><div class="line">               expectedModCount = modCount;<span class="comment">//expectedModCount重新赋值，单线程环境中，可以调用迭代器提供的remove方法，即可避免fail-fast错误</span></div><div class="line">           &#125; <span class="keyword">catch</span> (IndexOutOfBoundsException ex) &#123;</div><div class="line">               <span class="keyword">throw</span> <span class="keyword">new</span> ConcurrentModificationException();</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">checkForComodification</span><span class="params">()</span> </span>&#123;</div><div class="line">           <span class="keyword">if</span> (modCount != expectedModCount)</div><div class="line">               <span class="keyword">throw</span> <span class="keyword">new</span> ConcurrentModificationException();</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
-<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><ul>
-<li>单线程环境下，可以使用迭代器提供的remove、add方法；  </li>
-<li>使用CopyOnWriteArrayList来替换ArrayList；  </li>
-<li>使用List list = Collections.synchronizedList(new ArrayList(…))方法。  </li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>ArrayList是线性表中的顺序存储结构的顺序表，因为内部通过个数组保存元素，数组是一个拥有连续存储地址的存储块。  </li>
-<li>ArrayList因为内部维护的是一个数组，查询和修改的效率很高，但是插入添加和删除操作涉及元素迁移，效率比较低下。  </li>
-<li>ArrayList在允许加入NULL元素。  </li>
-<li>ArrayList从允许添加重复的元素对象。  </li>
-<li>ArrayList非线程安全，线程安全使用使用CopyOnWriteArrayList、Vector。  </li>
-<li>ArrayList支持序列化，基本思想是：写入时，序列化元素个数，依次序列化各个元素；反之亦然。  </li>
-</ul>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
       
 
       
       
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
       
 
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/07/29/Java-集合类概述/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="taoyongzhen">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="陶永臻">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/07/29/Java-集合类概述/" itemprop="url">Java 集合类概述</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
             
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-29T22:37:29+08:00">
-                2017-07-29
-              </time>
+              <a href="/2017/08/01/ArrayList源码分析/" rel="next" title="ArrayList源码分析">
+                <i class="fa fa-chevron-left"></i> ArrayList源码分析
+              </a>
             
+          </div>
 
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
             
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Collection/" itemprop="url" rel="index">
-                    <span itemprop="name">Collection</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
+          </div>
         </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          
-            <h2 id="框架概述"><a href="#框架概述" class="headerlink" title="框架概述"></a>框架概述</h2><p>首先需要理解集合的概念，集合是指由同类元素的整体。而java集合是指java提供的一套工具包，以方便用户的使用，包含了常用的数据结构：队列、链表、栈等。Java集合框架是指实现该工具包的一套规范，用来表示、操作集合，用以方便使用者理解、使用其中的数据结构。<br>学习、使用每一类集合时，需要从以下几个维度进行把握：  </p>
-<ul>
-<li>基本操作：增删改查，注意支持重复元素、NULL元素处理等。  </li>
-<li>线程安全：是不是支持多线程，以及实现多线程安全的方式。  </li>
-<li>效率: 空间复杂度和时间复杂度，包括基本操作的时间复杂度等。  <h2 id="设计理念"><a href="#设计理念" class="headerlink" title="设计理念"></a>设计理念</h2>主要的设计理念：提供一套小而美的API。能够友好支持新增数据结构，降低程序员的学习成本。<br>为了保证核心接口足够小、具有普适性，并不会区分该集合是否可变（mutability）,是否可更改（modifiability）,是否可改变大小（resizability）这些细微。例如，部分接口不支持某类操作，在是在实现时抛出UnsupportedOperationException即可表示集合不支持该操作。  <h2 id="框架类图"><a href="#框架类图" class="headerlink" title="框架类图"></a>框架类图</h2>Java集合主要可以划分为4个部分：List列表、Set集合、Map映射、工具类(Iterator迭代器、Enumeration枚举类、Arrays和Collections)。（下图来自网络).<br><img src="/2017/07/29/Java-集合类概述/java_collection.jpg" alt="集合框架类图"><br>下面依次简单介绍Collection和Map接口，其中Collection介绍List、Set和Queue接口。<h2 id="Collection接口"><a href="#Collection接口" class="headerlink" title="Collection接口"></a>Collection接口</h2>Collection接口作为集合类顶级接口，除了定义了基本的增删改查操作，还添加了clear()、size()等基本方法。这也符合其设计理念—定义一套小而全、具有普适作用的API。它是Queue、List和Set的父接口，包含他们公共的方法。<br><img src="/2017/07/29/Java-集合类概述/java_collection_fun.jpg" alt="Collection基本方法">  <h3 id="List接口"><a href="#List接口" class="headerlink" title="List接口"></a>List接口</h3>List接口通常表示一个列表（数组、队列、链表、栈等），其中的元素有序并且可以重复，常用实现类为ArrayList和LinkedList，另外还有不常用的Vector。  </li>
-<li>AbstractCollection:针对顶级接口类Collection中成员方法提供部分实现，增加Collection子类代码复用。  </li>
-<li>List：有序集合的顶层接口，定义一些基本方法。  </li>
-<li>AbstractList：针对顶级有序集合接口类List中成员方法提供部分实现，增加List子类代码复用。  </li>
-<li>AbstractSequentialList：在AbstractList基础上，提供顺序访问（数据存储方式为列表，有别于数据存储方式为数据，访问方式随机）。<br><img src="/2017/07/29/Java-集合类概述/java_collection_list.png" alt="List类图">  <h3 id="Set接口"><a href="#Set接口" class="headerlink" title="Set接口"></a>Set接口</h3>Set接口通常表示一个集合，其中的元素不允许重复（通过hashcode和equals函数保证），常用实现类有HashSet和TreeSet。  </li>
-<li>AbstractSet:针对接口类Set中成员方法提供实现，增加Set子类代码复用。  </li>
-<li>SortedSet:在接口类Set基础上定义有序访问。  </li>
-<li>NavigableSet：在接口类SortedSet基础上进行扩展。<br><img src="/2017/07/29/Java-集合类概述/java_collection_set.png" alt="Set类图">  <h3 id="Queue接口"><a href="#Queue接口" class="headerlink" title="Queue接口"></a>Queue接口</h3>待补充。。。  <h2 id="Map接口"><a href="#Map接口" class="headerlink" title="Map接口"></a>Map接口</h2>Map是一个映射接口，其中的每个元素都是一个key-value键值对，能够实现根据key快速查找value。  </li>
-<li>AbstractMap:针对接口类Map中成员方法提供实现，增加Map子类代码复用。  </li>
-<li>NavigableMap：在接口类SortedMap基础上进行扩展。  </li>
-<li>SortedMap:在接口类Map基础上定义有序访问。  </li>
-<li>ConcurrentMap：在接口类Map基础上定义线程安全和原子访问  </li>
-<li>ConcurrentNavigableMap：在接口类ConcurrentMap基础上，添加NavigableMap方法  </li>
-<li>Dictionary:是一个抽象类，用来存储键/值对，作用和Map类相似<br>Map并不是一个真正意义上的集合（are not true collections），但是这个接口提供了三种“集合视角”（collection views ），使得可以像操作集合一样操作它们，具体如下：</li>
-<li>把map的内容看作key的集合  </li>
-<li>把map的内容看作value的集合  </li>
-<li>把map的内容看作key-value映射的集合<br><img src="/2017/07/29/Java-集合类概述/java_collection_map.png" alt="Map类图">  <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2></li>
-<li>每种集合实现形式，定义了数据独特的“增删改查”方式。  </li>
-<li>使用者要依据场景，在空间复杂度和时间复杂度做出平衡的基础上，选择最为合适的数据集合。  </li>
-</ul>
-<h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>本系列java集合框架基于<strong><em>java version “1.8.0_92”</em></strong>源码分析  </p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li><a href="http://tengj.top/2016/04/12/javajhtotal/" target="_blank" rel="external">http://tengj.top/2016/04/12/javajhtotal/</a>  </li>
-<li><a href="http://liujiacai.net/blog/2015/09/01/java-collection-overview/" target="_blank" rel="external">http://liujiacai.net/blog/2015/09/01/java-collection-overview/</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -974,6 +640,10 @@
 
 
           
+  <div class="comments" id="comments">
+    
+  </div>
+
 
         </div>
         
@@ -994,8 +664,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -1057,6 +736,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本元素"><span class="nav-number">2.</span> <span class="nav-text">基本元素</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#类申明"><span class="nav-number">2.1.</span> <span class="nav-text">类申明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构造函数"><span class="nav-number">2.2.</span> <span class="nav-text">构造函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常量解释"><span class="nav-number">2.3.</span> <span class="nav-text">常量解释</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本操作"><span class="nav-number">3.</span> <span class="nav-text">基本操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#增加操作"><span class="nav-number">3.1.</span> <span class="nav-text">增加操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除操作"><span class="nav-number">3.2.</span> <span class="nav-text">删除操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改操作"><span class="nav-number">3.3.</span> <span class="nav-text">修改操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查询操作"><span class="nav-number">3.4.</span> <span class="nav-text">查询操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">3.5.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#附录"><span class="nav-number">4.</span> <span class="nav-text">附录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#顺序存储和链式存储"><span class="nav-number">4.1.</span> <span class="nav-text">顺序存储和链式存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Queue接口"><span class="nav-number">4.2.</span> <span class="nav-text">Queue接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概述-1"><span class="nav-number">4.2.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基本方法"><span class="nav-number">4.2.2.</span> <span class="nav-text">基本方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deque接口"><span class="nav-number">4.3.</span> <span class="nav-text">Deque接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概述-2"><span class="nav-number">4.3.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基本方法-1"><span class="nav-number">4.3.2.</span> <span class="nav-text">基本方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Deque实现"><span class="nav-number">4.3.3.</span> <span class="nav-text">Deque实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -1170,10 +865,10 @@
   
 
   
-    <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
 <script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
 
-  
+
 
   
 
