@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Collection," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="概述HashMap1.7版本内部使用数组+双向列表结构。即使再好的hash函数，也难以保证数据均匀地散列到各个桶中，当大量数据位于同一个桶中的情况下，获取数据的时间复杂度为O(n)，其中n代表hashmap链表长度。针对该问题，Hashmap1.8版本使用数组+双向列表/红黑树结构，解决大量数据位于同一个桶数据获取效率问题。">
+<meta name="keywords" content="Java,Collection">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HashMap源码分析（1.8版本）">
+<meta property="og:url" content="http://yoursite.com/2017/08/12/HashMap源码分析（1-8版本）/index.html">
+<meta property="og:site_name" content="陶永臻">
+<meta property="og:description" content="概述HashMap1.7版本内部使用数组+双向列表结构。即使再好的hash函数，也难以保证数据均匀地散列到各个桶中，当大量数据位于同一个桶中的情况下，获取数据的时间复杂度为O(n)，其中n代表hashmap链表长度。针对该问题，Hashmap1.8版本使用数组+双向列表/红黑树结构，解决大量数据位于同一个桶数据获取效率问题。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-08-14T15:08:13.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HashMap源码分析（1.8版本）">
+<meta name="twitter:description" content="概述HashMap1.7版本内部使用数组+双向列表结构。即使再好的hash函数，也难以保证数据均匀地散列到各个桶中，当大量数据位于同一个桶中的情况下，获取数据的时间复杂度为O(n)，其中n代表hashmap链表长度。针对该问题，Hashmap1.8版本使用数组+双向列表/红黑树结构，解决大量数据位于同一个桶数据获取效率问题。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/08/12/HashMap源码分析（1-8版本）/"/>
+
+
+
+
+
+  <title>HashMap源码分析（1.8版本） | 陶永臻</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">陶永臻</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">不恋过去，不畏将来</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/12/HashMap源码分析（1-8版本）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="taoyongzhen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陶永臻">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">HashMap源码分析（1.8版本）</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-12T14:05:57+08:00">
+                2017-08-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Map/" itemprop="url" rel="index">
+                    <span itemprop="name">Map</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>HashMap1.7版本内部使用数组+双向列表结构。即使再好的hash函数，也难以保证数据均匀地散列到各个桶中，当大量数据位于同一个桶中的情况下，获取数据的时间复杂度为O(n)，其中n代表hashmap链表长度。针对该问题，Hashmap1.8版本使用数组+双向列表/红黑树结构，解决大量数据位于同一个桶数据获取效率问题。<br><a id="more"></a></p>
+<h2 id="红黑树介绍"><a href="#红黑树介绍" class="headerlink" title="红黑树介绍"></a>红黑树介绍</h2><p>红黑树本质上是一种二叉查找树，它在二叉树的基础上额外给节点赋了颜色，使其具有一定的规则。这些规则保证红黑树是一种平衡、插入、删除和查找的时间复杂度为O(logn)。  </p>
+<h3 id="红黑树特性"><a href="#红黑树特性" class="headerlink" title="红黑树特性"></a>红黑树特性</h3><ul>
+<li>每个节点不是红色就是黑色的；  </li>
+<li>根节点总是黑色的；  </li>
+<li>如果节点是红色的，则它的子节点必须是黑色的（反之不一定）；  </li>
+<li>从根节点到叶节点或空子节点的每条路径，必须包含相同数目的黑色节点（即相同的黑色高度）。<br>红黑树的插入和删除操作会破坏上述规则，因此在执行插入和删除操作后，必须进行调整，使其遵守上述规则。<br>调整方法包括两类：  </li>
+</ul>
+<ol>
+<li>更改节点颜色（红黑调整）；  </li>
+<li>更改红黑树结构（左旋和右旋）。<br>下面以<strong>hashmap1.8源码</strong>讲述红黑树的进本操作。</li>
+</ol>
+<h3 id="左旋操作"><a href="#左旋操作" class="headerlink" title="左旋操作"></a>左旋操作</h3><p><strong>左旋操作：</strong>待旋转的节点从右边上升到父节点就是左旋，而父节点就变为左节点。左子树黑节点个数比右子树节点少1，通过左旋可以把父节点拉入左子树，使得左子树黑节点个数可能加1，在右子树黑节点个数不变的情况下，达到左右子树平衡。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"> * 左旋示意图：对节点p进行左旋 </div><div class="line"> *  pp                     pp </div><div class="line"> *  \                       \</div><div class="line"> *   p                       r </div><div class="line"> *  / \                     / \ </div><div class="line"> * pl  r      -----&gt;       p  ry </div><div class="line"> *    / \                 / \ </div><div class="line"> *   rl ry               pl rl </div><div class="line"> * 左旋做了三件事： </div><div class="line"> * <span class="number">1</span>. 将r的左子节点rl赋给p的右子节点,</div><div class="line"> * <span class="number">2</span>. 将p的父节点pp(非空时)赋给r的父节点</div><div class="line"> * <span class="number">3</span>. 将r的左子节点设为p </div><div class="line"> */  </div><div class="line"><span class="keyword">static</span> &lt;K,V&gt; <span class="function">TreeNode&lt;K,V&gt; <span class="title">rotateLeft</span><span class="params">(TreeNode&lt;K,V&gt; root,TreeNode&lt;K,V&gt; p)</span> </span>&#123;</div><div class="line">            TreeNode&lt;K,V&gt; r, pp, rl;</div><div class="line">            <span class="keyword">if</span> (p != <span class="keyword">null</span> &amp;&amp; (r = p.right) != <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">if</span> ((rl = p.right = r.left) != <span class="keyword">null</span>)<span class="comment">//</span></div><div class="line">                    rl.parent = p;</div><div class="line">                <span class="keyword">if</span> ((pp = r.parent = p.parent) == <span class="keyword">null</span>)</div><div class="line">                    (root = r).red = <span class="keyword">false</span>;<span class="comment">//根节点为黑色</span></div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (pp.left == p)</div><div class="line">                    pp.left = r;</div><div class="line">                <span class="keyword">else</span></div><div class="line">                    pp.right = r;</div><div class="line">                r.left = p;</div><div class="line">                p.parent = r;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> root;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<h3 id="右旋操作"><a href="#右旋操作" class="headerlink" title="右旋操作"></a>右旋操作</h3><p><strong>左旋操作：</strong>待旋转的节点从左边上升到父节点就是右旋，而父节点就变为右节点。左子树黑节点个数比右子树节点多1，通过右旋可以把左子树的父节点拉到父节点的位置，原来的父节点拉入右子树，使得左子树黑节点个数可能减1，在右子树黑节点个数不变的情况下，达到左右子树平衡。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"> * 右旋示意图：对节点p进行右旋 </div><div class="line"> *        pp                  pp </div><div class="line"> *       /                   / </div><div class="line"> *      p                   l </div><div class="line"> *     / \                 / \ </div><div class="line"> *    l  ry   -----&gt;      lx  p </div><div class="line"> *   / \                     / \ </div><div class="line"> * lx  lr                   lr ry </div><div class="line"> * 右旋做了三件事： </div><div class="line"> * <span class="number">1</span>. 将l的右子节点赋给p的左子节点,</div><div class="line"> * <span class="number">2</span>. 将p的父节点pp(非空时)赋给l的父节点</div><div class="line"> * <span class="number">3</span>. 将l的右子节点设为p，将p的父节点设为l </div><div class="line"><span class="keyword">static</span> &lt;K,V&gt; <span class="function">TreeNode&lt;K,V&gt; <span class="title">rotateRight</span><span class="params">(TreeNode&lt;K,V&gt; root,</span></span></div><div class="line">                                               TreeNode&lt;K,V&gt; p) &#123;</div><div class="line">            TreeNode&lt;K,V&gt; l, pp, lr;</div><div class="line">            <span class="keyword">if</span> (p != <span class="keyword">null</span> &amp;&amp; (l = p.left) != <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">if</span> ((lr = p.left = l.right) != <span class="keyword">null</span>)</div><div class="line">                    lr.parent = p;</div><div class="line">                <span class="keyword">if</span> ((pp = l.parent = p.parent) == <span class="keyword">null</span>)</div><div class="line">                    (root = l).red = <span class="keyword">false</span>;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (pp.right == p)</div><div class="line">                    pp.right = l;</div><div class="line">                <span class="keyword">else</span></div><div class="line">                    pp.left = l;</div><div class="line">                l.right = p;</div><div class="line">                p.parent = l;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> root;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<h3 id="插入操作"><a href="#插入操作" class="headerlink" title="插入操作"></a>插入操作</h3><p>在红-黑树中插入的节点都是红色的。因为插入一个红色节点比插入一个黑色节点违背红-黑规则的可能性更小。原因是：插入黑色节点总会改变黑色高度（违背规则4），但是插入红色节点只有一半的机会会违背规则3。另外违背规则3比违背规则4要更容易修正。一下为各种情况分析：  </p>
+<ol>
+<li>插入为根节点<br>&emsp;&emsp;该节点设置为黑色（规则1）；  </li>
+<li>插入节点的父节点为黑色<br>&emsp;&emsp;不违反红黑树规则，不做处理；  </li>
+<li>当前节点的父节点存在叔叔节点（两个节点）<br>&emsp;&emsp; 3.1. 当前节点的父节点和叔叔节点均是红色<br>&emsp;&emsp;&emsp;&emsp;将当前节点的父节点和叔叔节点涂黑，将祖父节点涂红。再将当前节点指向其祖父节点，再次从新的当前节点开始算法 。<br>&emsp;&emsp; 3.2. 当前节点的父节点是红色，叔叔节点是黑色，且插入节点是其父节点的右子节点<br>&emsp;&emsp;&emsp;&emsp;将当前节点的父节点作为新的当前节点，并以新当前节点为支点做左旋操作。<br>&emsp;&emsp; 3.3. 当前节点的父节点是红色,叔叔节点是黑色，当前节点是其父节点的左孩子<br>&emsp;&emsp;&emsp;&emsp;当前节点的父节点涂黑，将祖父节点涂红，在祖父节点为支点做右旋操作。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line">* 对于新节点的插入需要明确：</div><div class="line">*      <span class="number">1</span>、插入新节点总是红色节点；</div><div class="line">*      <span class="number">2</span>、插入为根节点，直接将其设置为黑色</div><div class="line">*      <span class="number">3</span>、如果插入节点的父节点是黑色, 不破坏红黑树性质，无需处理；</div><div class="line">*      <span class="number">4</span>、如果插入节点的父节点是红色, 性质被破坏，通过旋转和重新着色维护红黑树性质。</div><div class="line"><span class="keyword">static</span> &lt;K,V&gt; <span class="function">TreeNode&lt;K,V&gt; <span class="title">balanceInsertion</span><span class="params">(TreeNode&lt;K,V&gt; root,</span></span></div><div class="line">                                                    TreeNode&lt;K,V&gt; x) &#123;</div><div class="line">            x.red = <span class="keyword">true</span>;<span class="comment">//1.插入新节点总是红色节点</span></div><div class="line">            <span class="keyword">for</span> (TreeNode&lt;K,V&gt; xp, xpp, xppl, xppr;;) &#123;</div><div class="line">                <span class="keyword">if</span> ((xp = x.parent) == <span class="keyword">null</span>) &#123;<span class="comment">//2、插入为根节点，直接将其设置为黑色</span></div><div class="line">                    x.red = <span class="keyword">false</span>;</div><div class="line">                    <span class="keyword">return</span> x;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (!xp.red || (xpp = xp.parent) == <span class="keyword">null</span>)<span class="comment">//如果插入节点的父节点是黑色, 不破坏红黑树性质，无需处理；</span></div><div class="line">                    <span class="keyword">return</span> root;</div><div class="line">                <span class="keyword">if</span> (xp == (xppl = xpp.left)) &#123;<span class="comment">//3.1情形</span></div><div class="line">                    <span class="keyword">if</span> ((xppr = xpp.right) != <span class="keyword">null</span> &amp;&amp; xppr.red) &#123;</div><div class="line">                        xppr.red = <span class="keyword">false</span>;</div><div class="line">                        xp.red = <span class="keyword">false</span>;</div><div class="line">                        xpp.red = <span class="keyword">true</span>;</div><div class="line">                        x = xpp;</div><div class="line">                    &#125;</div><div class="line">                    <span class="keyword">else</span> &#123;<span class="comment">//3.2情况</span></div><div class="line">                        <span class="keyword">if</span> (x == xp.right) &#123;</div><div class="line">                            root = rotateLeft(root, x = xp);</div><div class="line">                            xpp = (xp = x.parent) == <span class="keyword">null</span> ? <span class="keyword">null</span> : xp.parent;</div><div class="line">                        &#125;</div><div class="line">                        <span class="keyword">if</span> (xp != <span class="keyword">null</span>) &#123;<span class="comment">//3.3情况</span></div><div class="line">                            xp.red = <span class="keyword">false</span>;</div><div class="line">                            <span class="keyword">if</span> (xpp != <span class="keyword">null</span>) &#123;</div><div class="line">                                xpp.red = <span class="keyword">true</span>;</div><div class="line">                                root = rotateRight(root, xpp);</div><div class="line">                            &#125;</div><div class="line">                        &#125;</div><div class="line">                    &#125;</div><div class="line">                &#125;<span class="comment">//镜像</span></div><div class="line">                <span class="keyword">else</span> &#123;</div><div class="line">                    <span class="keyword">if</span> (xppl != <span class="keyword">null</span> &amp;&amp; xppl.red) &#123;</div><div class="line">                        xppl.red = <span class="keyword">false</span>;</div><div class="line">                        xp.red = <span class="keyword">false</span>;</div><div class="line">                        xpp.red = <span class="keyword">true</span>;</div><div class="line">                        x = xpp;</div><div class="line">                    &#125;</div><div class="line">                    <span class="keyword">else</span> &#123;</div><div class="line">                        <span class="keyword">if</span> (x == xp.left) &#123;</div><div class="line">                            root = rotateRight(root, x = xp);</div><div class="line">                            xpp = (xp = x.parent) == <span class="keyword">null</span> ? <span class="keyword">null</span> : xp.parent;</div><div class="line">                        &#125;</div><div class="line">                        <span class="keyword">if</span> (xp != <span class="keyword">null</span>) &#123;</div><div class="line">                            xp.red = <span class="keyword">false</span>;</div><div class="line">                            <span class="keyword">if</span> (xpp != <span class="keyword">null</span>) &#123;</div><div class="line">                                xpp.red = <span class="keyword">true</span>;</div><div class="line">                                root = rotateLeft(root, xpp);</div><div class="line">                            &#125;</div><div class="line">                        &#125;</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p>至此，插入操作介绍完成。  </p>
+<h3 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h3><p>删除操作分以下情况：  </p>
+<ol>
+<li>无子节点（红色节点）<br>&emsp;&emsp;直接删除该节点；  </li>
+<li>有一个子节点（红色节点）<br>&emsp;&emsp;不违反红黑树规则，不做处理；  </li>
+<li>有两个子节点<br>&emsp;&emsp; 3.1. 当前节点是黑色的，且兄弟节点是红色的（那么父节点和兄弟节点的子节点肯定是黑色的）<br>&emsp;&emsp;&emsp;&emsp;把父节点染成红色，把兄弟节点染成黑色，然后以父节点为支点重新旋转 。<br>&emsp;&emsp; 3.2. 当前节点是黑色的，且兄弟节点是黑色的，且兄弟节点的两个子节点均为黑色的；<br>&emsp;&emsp;&emsp;&emsp;将兄弟节点变成红色，把父节点当成新的当前节点。<br>&emsp;&emsp; 3.3.  当前节点是黑色的，且兄弟节点是黑色的，且兄弟节点的左子节点是红色，右子节点时黑色的；<br>&emsp;&emsp;&emsp;&emsp;将兄弟节点与其左子树进行颜色互换然后进行重新旋转。<br>&emsp;&emsp; 3.4.  当前节点是黑色的，且兄弟节点是黑色的，且兄弟节点的右子节点是红色，左子节点任意颜色。<br>&emsp;&emsp;&emsp;&emsp;兄弟节点染成当前节点父节点的颜色，把当前节点父节点染成黑色，兄弟节点右子染成黑色，之后以当前节点的父节点为支点重新旋转。  </li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> &lt;K,V&gt; <span class="function">TreeNode&lt;K,V&gt; <span class="title">balanceDeletion</span><span class="params">(TreeNode&lt;K,V&gt; root,TreeNode&lt;K,V&gt; x)</span> </span>&#123;</div><div class="line">            <span class="keyword">for</span> (TreeNode&lt;K,V&gt; xp, xpl, xpr;;)  &#123;</div><div class="line">                <span class="keyword">if</span> (x == <span class="keyword">null</span> || x == root)<span class="comment">//1情形</span></div><div class="line">                    <span class="keyword">return</span> root;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> ((xp = x.parent) == <span class="keyword">null</span>) &#123;</div><div class="line">                    x.red = <span class="keyword">false</span>;</div><div class="line">                    <span class="keyword">return</span> x;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (x.red) &#123;</div><div class="line">                    x.red = <span class="keyword">false</span>;</div><div class="line">                    <span class="keyword">return</span> root;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> ((xpl = xp.left) == x) &#123;</div><div class="line">                		<span class="comment">//符合3.1</span></div><div class="line">                    <span class="keyword">if</span> ((xpr = xp.right) != <span class="keyword">null</span> &amp;&amp; xpr.red) &#123;</div><div class="line">                        xpr.red = <span class="keyword">false</span>;</div><div class="line">                        xp.red = <span class="keyword">true</span>;</div><div class="line">                        root = rotateLeft(root, xp);</div><div class="line">                        xpr = (xp = x.parent) == <span class="keyword">null</span> ? <span class="keyword">null</span> : xp.right;</div><div class="line">                    &#125;</div><div class="line">                    <span class="keyword">if</span> (xpr == <span class="keyword">null</span>)</div><div class="line">                        x = xp;</div><div class="line">                    <span class="keyword">else</span> &#123;</div><div class="line">                        TreeNode&lt;K,V&gt; sl = xpr.left, sr = xpr.right;				 <span class="comment">//情况3.2：当前节点是黑色且兄弟节点是黑色且兄弟节点的两个子节点全为黑色</span></div><div class="line">                        <span class="keyword">if</span> ((sr == <span class="keyword">null</span> || !sr.red) &amp;&amp;</div><div class="line">                            (sl == <span class="keyword">null</span> || !sl.red)) &#123;</div><div class="line">                            xpr.red = <span class="keyword">true</span>;</div><div class="line">                            x = xp;</div><div class="line">                        &#125;</div><div class="line">                        <span class="keyword">else</span> &#123;</div><div class="line">                        	  <span class="comment">////情况3.3：当前节点颜色是黑色，兄弟节点是黑色，兄弟的左子是红色，右子是黑色 </span></div><div class="line">                            <span class="keyword">if</span> (sr == <span class="keyword">null</span> || !sr.red) &#123;</div><div class="line">                                <span class="keyword">if</span> (sl != <span class="keyword">null</span>)</div><div class="line">                                    sl.red = <span class="keyword">false</span>;</div><div class="line">                                xpr.red = <span class="keyword">true</span>;</div><div class="line">                                root = rotateRight(root, xpr);</div><div class="line">                                xpr = (xp = x.parent) == <span class="keyword">null</span> ?</div><div class="line">                                    <span class="keyword">null</span> : xp.right;</div><div class="line">                            &#125;</div><div class="line">                            <span class="keyword">if</span> (xpr != <span class="keyword">null</span>) &#123;</div><div class="line">                                xpr.red = (xp == <span class="keyword">null</span>) ? <span class="keyword">false</span> : xp.red;</div><div class="line">                                <span class="keyword">if</span> ((sr = xpr.right) != <span class="keyword">null</span>)</div><div class="line">                                    sr.red = <span class="keyword">false</span>;</div><div class="line">                            &#125;</div><div class="line">                            <span class="comment">//当前节点是黑色，兄弟节点是黑色，但是兄弟节点的右子是红色，兄弟节点左子的颜色任意</span></div><div class="line">                            <span class="keyword">if</span> (xp != <span class="keyword">null</span>) &#123;</div><div class="line">                                xp.red = <span class="keyword">false</span>;</div><div class="line">                                root = rotateLeft(root, xp);</div><div class="line">                            &#125;</div><div class="line">                            x = root;</div><div class="line">                        &#125;</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">else</span> &#123; <span class="comment">// symmetric</span></div><div class="line">                    <span class="keyword">if</span> (xpl != <span class="keyword">null</span> &amp;&amp; xpl.red) &#123;</div><div class="line">                        xpl.red = <span class="keyword">false</span>;</div><div class="line">                        xp.red = <span class="keyword">true</span>;</div><div class="line">                        root = rotateRight(root, xp);</div><div class="line">                        xpl = (xp = x.parent) == <span class="keyword">null</span> ? <span class="keyword">null</span> : xp.left;</div><div class="line">                    &#125;</div><div class="line">                    <span class="keyword">if</span> (xpl == <span class="keyword">null</span>)</div><div class="line">                        x = xp;</div><div class="line">                    <span class="keyword">else</span> &#123;</div><div class="line">                        TreeNode&lt;K,V&gt; sl = xpl.left, sr = xpl.right;</div><div class="line">                        <span class="keyword">if</span> ((sl == <span class="keyword">null</span> || !sl.red) &amp;&amp;</div><div class="line">                            (sr == <span class="keyword">null</span> || !sr.red)) &#123;</div><div class="line">                            xpl.red = <span class="keyword">true</span>;</div><div class="line">                            x = xp;</div><div class="line">                        &#125;</div><div class="line">                        <span class="keyword">else</span> &#123;</div><div class="line">                            <span class="keyword">if</span> (sl == <span class="keyword">null</span> || !sl.red) &#123;</div><div class="line">                                <span class="keyword">if</span> (sr != <span class="keyword">null</span>)</div><div class="line">                                    sr.red = <span class="keyword">false</span>;</div><div class="line">                                xpl.red = <span class="keyword">true</span>;</div><div class="line">                                root = rotateLeft(root, xpl);</div><div class="line">                                xpl = (xp = x.parent) == <span class="keyword">null</span> ?</div><div class="line">                                    <span class="keyword">null</span> : xp.left;</div><div class="line">                            &#125;</div><div class="line">                            <span class="keyword">if</span> (xpl != <span class="keyword">null</span>) &#123;</div><div class="line">                                xpl.red = (xp == <span class="keyword">null</span>) ? <span class="keyword">false</span> : xp.red;</div><div class="line">                                <span class="keyword">if</span> ((sl = xpl.left) != <span class="keyword">null</span>)</div><div class="line">                                    sl.red = <span class="keyword">false</span>;</div><div class="line">                            &#125;</div><div class="line">                            <span class="keyword">if</span> (xp != <span class="keyword">null</span>) &#123;</div><div class="line">                                xp.red = <span class="keyword">false</span>;</div><div class="line">                                root = rotateRight(root, xp);</div><div class="line">                            &#125;</div><div class="line">                            x = root;</div><div class="line">                        &#125;</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<h2 id="基本要点"><a href="#基本要点" class="headerlink" title="基本要点"></a>基本要点</h2><h3 id="设计理念"><a href="#设计理念" class="headerlink" title="设计理念"></a>设计理念</h3><p>在一定条件下，使用红黑树代替双向列表，优化查询、删除等操作的效率。</p>
+<h3 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h3><p>HashMap1.8版本涉及到存储结构有三个：  </p>
+<ul>
+<li>散列表，即数组transient Entry<k,v>[] table;  </k,v></li>
+<li>基本链表数据节点Node<k,v>  </k,v></li>
+<li>基本红黑树数据节点TreeNode<k,v><br>前面两个和1.7版本一样，无需赘言。下面简单讲解新增数据结构TreeNode<k,v>。  </k,v></k,v></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">*基本的元素介绍</div><div class="line">*/</div><div class="line"> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">TreeNode</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt; <span class="keyword">extends</span> <span class="title">LinkedHashMap</span>.<span class="title">Entry</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt; </span>&#123;</div><div class="line">        TreeNode&lt;K,V&gt; parent;  <span class="comment">// 指向父节点</span></div><div class="line">        TreeNode&lt;K,V&gt; left; <span class="comment">//左子树</span></div><div class="line">        TreeNode&lt;K,V&gt; right; <span class="comment">//右子树</span></div><div class="line">        TreeNode&lt;K,V&gt; prev;    <span class="comment">// needed to unlink next upon deletion 后继节点</span></div><div class="line">        <span class="keyword">boolean</span> red; <span class="comment">//节点颜色，非黑即红</span></div><div class="line">        TreeNode(<span class="keyword">int</span> hash, K key, V val, Node&lt;K,V&gt; next) &#123;</div><div class="line">            <span class="keyword">super</span>(hash, key, val, next);</div><div class="line">        &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>上面只是简单讲述该存储元素的构造函数和成员变量。下面分析部分成员函数，为后面分析hashmap增删改查操作做铺垫。  </p>
+<h3 id="成员函数-TreeNode"><a href="#成员函数-TreeNode" class="headerlink" title="成员函数(TreeNode)"></a>成员函数(TreeNode)</h3><p><strong>函数：</strong>moveRootToFront(Node<k,v>[] tab, TreeNode<k,v> root)</k,v></k,v></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 将制定节点root添加到散列表首位</div><div class="line">*/</div><div class="line"><span class="keyword">static</span> &lt;K,V&gt; <span class="function"><span class="keyword">void</span> <span class="title">moveRootToFront</span><span class="params">(Node&lt;K,V&gt;[] tab, TreeNode&lt;K,V&gt; root)</span> </span>&#123;</div><div class="line">            <span class="keyword">int</span> n;</div><div class="line">            <span class="keyword">if</span> (root != <span class="keyword">null</span> &amp;&amp; tab != <span class="keyword">null</span> &amp;&amp; (n = tab.length) &gt; <span class="number">0</span>) &#123;</div><div class="line">                <span class="keyword">int</span> index = (n - <span class="number">1</span>) &amp; root.hash;</div><div class="line">                TreeNode&lt;K,V&gt; first = (TreeNode&lt;K,V&gt;)tab[index];</div><div class="line">                <span class="keyword">if</span> (root != first) &#123;</div><div class="line">                    Node&lt;K,V&gt; rn;</div><div class="line">                    tab[index] = root;</div><div class="line">                    TreeNode&lt;K,V&gt; rp = root.prev;</div><div class="line">                    <span class="keyword">if</span> ((rn = root.next) != <span class="keyword">null</span>)</div><div class="line">                        ((TreeNode&lt;K,V&gt;)rn).prev = rp;</div><div class="line">                    <span class="keyword">if</span> (rp != <span class="keyword">null</span>)</div><div class="line">                        rp.next = rn;</div><div class="line">                    <span class="keyword">if</span> (first != <span class="keyword">null</span>)</div><div class="line">                        first.prev = root;</div><div class="line">                    root.next = first;</div><div class="line">                    root.prev = <span class="keyword">null</span>;</div><div class="line">                &#125;</div><div class="line">                <span class="function"><span class="keyword">assert</span> <span class="title">checkInvariants</span><span class="params">(root)</span></span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p><strong>函数：</strong>find(int h, Object k, Class&lt;?&gt; kc)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">         * Finds the node starting at root p with the given hash and key.</div><div class="line">         * The kc argument caches comparableClassFor(key) upon first use</div><div class="line">         * comparing keys.</div><div class="line">         * 查找指定key对应的节点</div><div class="line">         */</div><div class="line">        <span class="function"><span class="keyword">final</span> TreeNode&lt;K,V&gt; <span class="title">find</span><span class="params">(<span class="keyword">int</span> h, Object k, Class&lt;?&gt; kc)</span> </span>&#123;</div><div class="line">            TreeNode&lt;K,V&gt; p = <span class="keyword">this</span>;</div><div class="line">            <span class="keyword">do</span> &#123;</div><div class="line">                <span class="keyword">int</span> ph, dir; K pk;</div><div class="line">                TreeNode&lt;K,V&gt; pl = p.left, pr = p.right, q;</div><div class="line">                <span class="comment">//根据hash值的大小关系，进入对应子树进行搜索</span></div><div class="line">                <span class="keyword">if</span> ((ph = p.hash) &gt; h)</div><div class="line">                    p = pl;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (ph &lt; h)</div><div class="line">                    p = pr;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> ((pk = p.key) == k || (k != <span class="keyword">null</span> &amp;&amp; k.equals(pk)))<span class="comment">//hash值相同，key相同或者相等，直接返回</span></div><div class="line">                    <span class="keyword">return</span> p;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (pl == <span class="keyword">null</span>)<span class="comment">//左子树空，进入右子树搜索</span></div><div class="line">                    p = pr;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (pr == <span class="keyword">null</span>)<span class="comment">//右子树空，进入左子树搜索</span></div><div class="line">                    p = pl;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> ((kc != <span class="keyword">null</span> ||</div><div class="line">                          (kc = comparableClassFor(k)) != <span class="keyword">null</span>) &amp;&amp;</div><div class="line">                         (dir = compareComparables(kc, k, pk)) != <span class="number">0</span>)<span class="comment">//hash相等，key实现Comparables接口，据此进行比较</span></div><div class="line">                    p = (dir &lt; <span class="number">0</span>) ? pl : pr;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> ((q = pr.find(h, k, kc)) != <span class="keyword">null</span>)<span class="comment">////先遍历右子树，</span></div><div class="line">                    <span class="keyword">return</span> q;</div><div class="line">                <span class="keyword">else</span><span class="comment">//找不到再遍历左子树（此时左右子树都非空）</span></div><div class="line">                    p = pl;</div><div class="line">            &#125; <span class="keyword">while</span> (p != <span class="keyword">null</span>);</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p>函数：tieBreakOrder(Object a, Object b)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">         * Tie-breaking utility for ordering insertions when equal</div><div class="line">         * hashCodes and non-comparable. We don't require a total</div><div class="line">         * order, just a consistent insertion rule to maintain</div><div class="line">         * equivalence across rebalancings. Tie-breaking further than</div><div class="line">         * necessary simplifies testing a bit.</div><div class="line">         * 两个对象hashmap相等、未实现comparable接口的情况下比较大小。1. 依旧class name 字符串的comparable比较；2.内存地址比较。  </div><div class="line">         * 这里讲比较进行到底的原因：只不过为了方便红黑树依据大小进行插入等操作。</div><div class="line">         */</div><div class="line">        <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">tieBreakOrder</span><span class="params">(Object a, Object b)</span> </span>&#123;</div><div class="line">            <span class="keyword">int</span> d;</div><div class="line">            <span class="keyword">if</span> (a == <span class="keyword">null</span> || b == <span class="keyword">null</span> ||</div><div class="line">                (d = a.getClass().getName().</div><div class="line">                 compareTo(b.getClass().getName())) == <span class="number">0</span>)</div><div class="line">                d = (System.identityHashCode(a) &lt;= System.identityHashCode(b) ?</div><div class="line">                     -<span class="number">1</span> : <span class="number">1</span>);</div><div class="line">            <span class="keyword">return</span> d;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p><strong>函数：</strong>treeify(Node<k,v>[] tab)</k,v></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">        * Forms tree of the nodes linked from this node.</div><div class="line">        * <span class="doctag">@return</span> root of tree</div><div class="line">        * 将双向列表树化</div><div class="line">        */</div><div class="line">       <span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">treeify</span><span class="params">(Node&lt;K,V&gt;[] tab)</span> </span>&#123;</div><div class="line">           TreeNode&lt;K,V&gt; root = <span class="keyword">null</span>;</div><div class="line">           <span class="keyword">for</span> (TreeNode&lt;K,V&gt; x = <span class="keyword">this</span>, next; x != <span class="keyword">null</span>; x = next) &#123;</div><div class="line">               next = (TreeNode&lt;K,V&gt;)x.next;</div><div class="line">               x.left = x.right = <span class="keyword">null</span>;</div><div class="line">               <span class="keyword">if</span> (root == <span class="keyword">null</span>) &#123;<span class="comment">//桶中的第一个节点作为根节点</span></div><div class="line">                   x.parent = <span class="keyword">null</span>;</div><div class="line">                   x.red = <span class="keyword">false</span>;<span class="comment">//根节点设为黑色</span></div><div class="line">                   root = x;</div><div class="line">               &#125;</div><div class="line">               <span class="keyword">else</span> &#123;</div><div class="line">                   K k = x.key;</div><div class="line">                   <span class="keyword">int</span> h = x.hash;</div><div class="line">                   Class&lt;?&gt; kc = <span class="keyword">null</span>;</div><div class="line">                   <span class="keyword">for</span> (TreeNode&lt;K,V&gt; p = root;;) &#123;<span class="comment">//从根节点开始遍历，寻找出入位置</span></div><div class="line">                       <span class="keyword">int</span> dir, ph;</div><div class="line">                       K pk = p.key;</div><div class="line">                       <span class="keyword">if</span> ((ph = p.hash) &gt; h)</div><div class="line">                           dir = -<span class="number">1</span>;</div><div class="line">                       <span class="keyword">else</span> <span class="keyword">if</span> (ph &lt; h)</div><div class="line">                           dir = <span class="number">1</span>;</div><div class="line">                       <span class="keyword">else</span> <span class="keyword">if</span> ((kc == <span class="keyword">null</span> &amp;&amp;</div><div class="line">                                 (kc = comparableClassFor(k)) == <span class="keyword">null</span>) ||</div><div class="line">                                (dir = compareComparables(kc, k, pk)) == <span class="number">0</span>)</div><div class="line">                           dir = tieBreakOrder(k, pk);</div><div class="line"></div><div class="line">                       TreeNode&lt;K,V&gt; xp = p;</div><div class="line">                       <span class="comment">//获取插入位置，和二叉树寻找插入位置方法一样</span></div><div class="line">                       <span class="keyword">if</span> ((p = (dir &lt;= <span class="number">0</span>) ? p.left : p.right) == <span class="keyword">null</span>) &#123;	<span class="comment">//插入接待等你</span></div><div class="line">                           x.parent = xp;</div><div class="line">                           <span class="keyword">if</span> (dir &lt;= <span class="number">0</span>)</div><div class="line">                               xp.left = x;</div><div class="line">                           <span class="keyword">else</span></div><div class="line">                               xp.right = x;</div><div class="line">                           root = balanceInsertion(root, x);<span class="comment">//红黑树调整</span></div><div class="line">                           <span class="keyword">break</span>;</div><div class="line">                       &#125;</div><div class="line">                   &#125;</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">           moveRootToFront(tab, root);<span class="comment">//将二叉树的根节点放置到数组中</span></div><div class="line">       &#125;</div></pre></td></tr></table></figure>
+<p><strong>函数：</strong>untreeify(HashMap<k,v> map)</k,v></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">         * Returns a list of non-TreeNodes replacing those linked from</div><div class="line">         * this node.</div><div class="line">         * 将红黑树转为双向列表</div><div class="line">         */</div><div class="line">        <span class="function"><span class="keyword">final</span> Node&lt;K,V&gt; <span class="title">untreeify</span><span class="params">(HashMap&lt;K,V&gt; map)</span> </span>&#123;</div><div class="line">            Node&lt;K,V&gt; hd = <span class="keyword">null</span>, tl = <span class="keyword">null</span>;<span class="comment">//头尾节点</span></div><div class="line">            <span class="keyword">for</span> (Node&lt;K,V&gt; q = <span class="keyword">this</span>; q != <span class="keyword">null</span>; q = q.next) &#123;</div><div class="line">                Node&lt;K,V&gt; p = map.replacementNode(q, <span class="keyword">null</span>);<span class="comment">//转为链表节点</span></div><div class="line">                <span class="keyword">if</span> (tl == <span class="keyword">null</span>)<span class="comment">//头结点赋值</span></div><div class="line">                    hd = p;</div><div class="line">                <span class="keyword">else</span></div><div class="line">                    tl.next = p;</div><div class="line">                tl = p;<span class="comment">//未节点赋值</span></div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> hd;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p><strong>函数：</strong>putTreeVal(HashMap<k,v> map, Node<k,v>[] tab,int h, K k, V v) </k,v></k,v></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">         * Tree version of putVal.</div><div class="line">         * 存储结构为红黑树情况下：添加节点</div><div class="line">         */</div><div class="line">        <span class="function"><span class="keyword">final</span> TreeNode&lt;K,V&gt; <span class="title">putTreeVal</span><span class="params">(HashMap&lt;K,V&gt; map, Node&lt;K,V&gt;[] tab,</span></span></div><div class="line">                                       <span class="keyword">int</span> h, K k, V v) &#123;</div><div class="line">            Class&lt;?&gt; kc = <span class="keyword">null</span>;</div><div class="line">            <span class="keyword">boolean</span> searched = <span class="keyword">false</span>;</div><div class="line">            TreeNode&lt;K,V&gt; root = (parent != <span class="keyword">null</span>) ? root() : <span class="keyword">this</span>;<span class="comment">//获取红黑树的根节点</span></div><div class="line">            <span class="keyword">for</span> (TreeNode&lt;K,V&gt; p = root;;) &#123;</div><div class="line">                <span class="keyword">int</span> dir, ph; K pk;</div><div class="line">                <span class="keyword">if</span> ((ph = p.hash) &gt; h)</div><div class="line">                    dir = -<span class="number">1</span>;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (ph &lt; h)</div><div class="line">                    dir = <span class="number">1</span>;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> ((pk = p.key) == k || (k != <span class="keyword">null</span> &amp;&amp; k.equals(pk)))<span class="comment">//已经存在，无需添加</span></div><div class="line">                    <span class="keyword">return</span> p;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> ((kc == <span class="keyword">null</span> &amp;&amp;</div><div class="line">                          (kc = comparableClassFor(k)) == <span class="keyword">null</span>) ||</div><div class="line">                         (dir = compareComparables(kc, k, pk)) == <span class="number">0</span>) &#123;</div><div class="line">                    <span class="keyword">if</span> (!searched) &#123;<span class="comment">//searched作用：通过迭代对子树进行遍历，所以无需重复进行了</span></div><div class="line">                        TreeNode&lt;K,V&gt; q, ch;</div><div class="line">                        searched = <span class="keyword">true</span>;</div><div class="line">                        <span class="keyword">if</span> (((ch = p.left) != <span class="keyword">null</span> &amp;&amp;</div><div class="line">                             (q = ch.find(h, k, kc)) != <span class="keyword">null</span>) ||</div><div class="line">                            ((ch = p.right) != <span class="keyword">null</span> &amp;&amp;</div><div class="line">                             (q = ch.find(h, k, kc)) != <span class="keyword">null</span>))</div><div class="line">                            <span class="keyword">return</span> q;</div><div class="line">                    &#125;</div><div class="line">                    dir = tieBreakOrder(k, pk);</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                TreeNode&lt;K,V&gt; xp = p;</div><div class="line">                <span class="keyword">if</span> ((p = (dir &lt;= <span class="number">0</span>) ? p.left : p.right) == <span class="keyword">null</span>) &#123;<span class="comment">//左右子树为空，表示已经找到插入位置</span></div><div class="line">                    Node&lt;K,V&gt; xpn = xp.next;</div><div class="line">                    TreeNode&lt;K,V&gt; x = map.newTreeNode(h, k, v, xpn);</div><div class="line">                    <span class="comment">//节点的添加</span></div><div class="line">                    <span class="keyword">if</span> (dir &lt;= <span class="number">0</span>)</div><div class="line">                        xp.left = x;</div><div class="line">                    <span class="keyword">else</span></div><div class="line">                        xp.right = x;</div><div class="line">                    xp.next = x;</div><div class="line">                    x.parent = x.prev = xp;</div><div class="line">                    <span class="keyword">if</span> (xpn != <span class="keyword">null</span>)</div><div class="line">                        ((TreeNode&lt;K,V&gt;)xpn).prev = x;</div><div class="line">                    moveRootToFront(tab, balanceInsertion(root, x));<span class="comment">//调整红黑树；重新将根节点对数组赋值</span></div><div class="line">                    <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p><strong>函数：</strong>removeTreeNode(HashMap<k,v> map, Node<k,v>[] tab,boolean movable)</k,v></k,v></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">         * Removes the given node, that must be present before this call.</div><div class="line">         * This is messier than typical red-black deletion code because we</div><div class="line">         * cannot swap the contents of an interior node with a leaf</div><div class="line">         * successor that is pinned by "next" pointers that are accessible</div><div class="line">         * independently during traversal. So instead we swap the tree</div><div class="line">         * linkages. If the current tree appears to have too few nodes,</div><div class="line">         * the bin is converted back to a plain bin. (The test triggers</div><div class="line">         * somewhere between 2 and 6 nodes, depending on tree structure).</div><div class="line">         * 红黑树情况下，移除节点</div><div class="line">         */</div><div class="line">        <span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">removeTreeNode</span><span class="params">(HashMap&lt;K,V&gt; map, Node&lt;K,V&gt;[] tab,</span></span></div><div class="line">                                  <span class="keyword">boolean</span> movable) &#123;</div><div class="line">            <span class="keyword">int</span> n;</div><div class="line">            <span class="keyword">if</span> (tab == <span class="keyword">null</span> || (n = tab.length) == <span class="number">0</span>)</div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            <span class="keyword">int</span> index = (n - <span class="number">1</span>) &amp; hash;</div><div class="line">            TreeNode&lt;K,V&gt; first = (TreeNode&lt;K,V&gt;)tab[index], root = first, rl;</div><div class="line">            TreeNode&lt;K,V&gt; succ = (TreeNode&lt;K,V&gt;)next, pred = prev;</div><div class="line">            <span class="comment">//维护前驱、后继关系 </span></div><div class="line">            <span class="keyword">if</span> (pred == <span class="keyword">null</span>)</div><div class="line">                tab[index] = first = succ;</div><div class="line">            <span class="keyword">else</span></div><div class="line">                pred.next = succ;</div><div class="line">            <span class="keyword">if</span> (succ != <span class="keyword">null</span>)</div><div class="line">                succ.prev = pred;</div><div class="line">            <span class="keyword">if</span> (first == <span class="keyword">null</span>)</div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            <span class="keyword">if</span> (root.parent != <span class="keyword">null</span>)</div><div class="line">                root = root.root();</div><div class="line">            <span class="keyword">if</span> (root == <span class="keyword">null</span> || root.right == <span class="keyword">null</span> ||</div><div class="line">                (rl = root.left) == <span class="keyword">null</span> || rl.left == <span class="keyword">null</span>) &#123;<span class="comment">//只有一个节点，直接返回</span></div><div class="line">                tab[index] = first.untreeify(map);  <span class="comment">// too small</span></div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            &#125;</div><div class="line">            TreeNode&lt;K,V&gt; p = <span class="keyword">this</span>, pl = left, pr = right, replacement;</div><div class="line">            <span class="keyword">if</span> (pl != <span class="keyword">null</span> &amp;&amp; pr != <span class="keyword">null</span>) &#123;</div><div class="line">                TreeNode&lt;K,V&gt; s = pr, sl;</div><div class="line">                <span class="keyword">while</span> ((sl = s.left) != <span class="keyword">null</span>) <span class="comment">// find successor  找到替换节点</span></div><div class="line">                    s = sl;</div><div class="line">                <span class="keyword">boolean</span> c = s.red; s.red = p.red; p.red = c; <span class="comment">// swap colors 交换颜色</span></div><div class="line">                <span class="comment">//节点只能交换颜色，不能简单的交换key。value的引用，原因是：需要维护前驱和后继引用。下面的代码修改parent、left、right的引用。</span></div><div class="line">                TreeNode&lt;K,V&gt; sr = s.right;</div><div class="line">                TreeNode&lt;K,V&gt; pp = p.parent;</div><div class="line">                <span class="keyword">if</span> (s == pr) &#123; <span class="comment">// p was s's direct parent</span></div><div class="line">                    p.parent = s;</div><div class="line">                    s.right = p;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">else</span> &#123;</div><div class="line">                    TreeNode&lt;K,V&gt; sp = s.parent;</div><div class="line">                    <span class="keyword">if</span> ((p.parent = sp) != <span class="keyword">null</span>) &#123;</div><div class="line">                        <span class="keyword">if</span> (s == sp.left)</div><div class="line">                            sp.left = p;</div><div class="line">                        <span class="keyword">else</span></div><div class="line">                            sp.right = p;</div><div class="line">                    &#125;</div><div class="line">                    <span class="keyword">if</span> ((s.right = pr) != <span class="keyword">null</span>)</div><div class="line">                        pr.parent = s;</div><div class="line">                &#125;</div><div class="line">                p.left = <span class="keyword">null</span>;</div><div class="line">                <span class="keyword">if</span> ((p.right = sr) != <span class="keyword">null</span>)</div><div class="line">                    sr.parent = p;</div><div class="line">                <span class="keyword">if</span> ((s.left = pl) != <span class="keyword">null</span>)</div><div class="line">                    pl.parent = s;</div><div class="line">                <span class="keyword">if</span> ((s.parent = pp) == <span class="keyword">null</span>)</div><div class="line">                    root = s;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (p == pp.left)</div><div class="line">                    pp.left = s;</div><div class="line">                <span class="keyword">else</span></div><div class="line">                    pp.right = s;</div><div class="line">                <span class="keyword">if</span> (sr != <span class="keyword">null</span>)</div><div class="line">                    replacement = sr;</div><div class="line">                <span class="keyword">else</span></div><div class="line">                    replacement = p;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (pl != <span class="keyword">null</span>)</div><div class="line">                replacement = pl;</div><div class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (pr != <span class="keyword">null</span>)</div><div class="line">                replacement = pr;</div><div class="line">            <span class="keyword">else</span></div><div class="line">                replacement = p;</div><div class="line">            <span class="keyword">if</span> (replacement != p) &#123; <span class="comment">//置空操作，方便gc</span></div><div class="line">                TreeNode&lt;K,V&gt; pp = replacement.parent = p.parent;</div><div class="line">                <span class="keyword">if</span> (pp == <span class="keyword">null</span>)</div><div class="line">                    root = replacement;</div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (p == pp.left)</div><div class="line">                    pp.left = replacement;</div><div class="line">                <span class="keyword">else</span></div><div class="line">                    pp.right = replacement;</div><div class="line">                p.left = p.right = p.parent = <span class="keyword">null</span>;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            TreeNode&lt;K,V&gt; r = p.red ? root : balanceDeletion(root, replacement);<span class="comment">//红黑树调整</span></div><div class="line"></div><div class="line">            <span class="keyword">if</span> (replacement == p) &#123;  <span class="comment">// detach 置空操作，方便gc</span></div><div class="line">                TreeNode&lt;K,V&gt; pp = p.parent;</div><div class="line">                p.parent = <span class="keyword">null</span>;</div><div class="line">                <span class="keyword">if</span> (pp != <span class="keyword">null</span>) &#123;</div><div class="line">                    <span class="keyword">if</span> (p == pp.left)</div><div class="line">                        pp.left = <span class="keyword">null</span>;</div><div class="line">                    <span class="keyword">else</span> <span class="keyword">if</span> (p == pp.right)</div><div class="line">                        pp.right = <span class="keyword">null</span>;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span> (movable)</div><div class="line">                moveRootToFront(tab, r);</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p><strong>函数：</strong>split(HashMap<k,v> map, Node<k,v>[] tab, int index, int bit)</k,v></k,v></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Splits nodes in a tree bin into lower and upper tree bins,</div><div class="line">     * or untreeifies if now too small. Called only from resize;</div><div class="line">     * see above discussion about split bits and indices.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> map   the map</div><div class="line">     * <span class="doctag">@param</span> tab   the table for recording bin heads</div><div class="line">     * <span class="doctag">@param</span> index the index of the table being split</div><div class="line">     * <span class="doctag">@param</span> bit   the bit of hash to split on</div><div class="line">     *              该方法主要有两个作用：</div><div class="line">     *              1.将桶内元素分成低位链表和高位链表两个部分</div><div class="line">     *              2.当该桶的元素数量太少时，会执行反树化操作（即链化操作）</div><div class="line">     *              该方法只能被resize方法使用</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">split</span><span class="params">(HashMap&lt;K, V&gt; map, Node&lt;K, V&gt;[] tab, <span class="keyword">int</span> index, <span class="keyword">int</span> bit)</span> </span>&#123;</div><div class="line">        TreeNode&lt;K, V&gt; b = <span class="keyword">this</span>;</div><div class="line">        <span class="comment">// Relink into lo and hi lists, preserving order</span></div><div class="line">        TreeNode&lt;K, V&gt; loHead = <span class="keyword">null</span>, loTail = <span class="keyword">null</span>;</div><div class="line">        TreeNode&lt;K, V&gt; hiHead = <span class="keyword">null</span>, hiTail = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">int</span> lc = <span class="number">0</span>, hc = <span class="number">0</span>;</div><div class="line">        <span class="keyword">for</span> (TreeNode&lt;K, V&gt; e = b, next; e != <span class="keyword">null</span>; e = next) &#123;</div><div class="line">            next = (TreeNode&lt;K, V&gt;) e.next;</div><div class="line">            e.next = <span class="keyword">null</span>;</div><div class="line">            <span class="comment">// //(e.hash &amp; bit) == 0 等价于 resize方法中的 (e.hash &amp; oldCap) == 0，同时效果等效</span></div><div class="line">            <span class="comment">//即将桶内元素分成低位链表和高位链表两个部分，即红黑树一分为二成两个链表</span></div><div class="line">            <span class="keyword">if</span> ((e.hash &amp; bit) == <span class="number">0</span>) &#123;</div><div class="line">                <span class="keyword">if</span> ((e.prev = loTail) == <span class="keyword">null</span>)</div><div class="line">                    loHead = e;</div><div class="line">                <span class="keyword">else</span></div><div class="line">                    loTail.next = e;</div><div class="line">                loTail = e;</div><div class="line">                ++lc;</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="keyword">if</span> ((e.prev = hiTail) == <span class="keyword">null</span>)</div><div class="line">                    hiHead = e;</div><div class="line">                <span class="keyword">else</span></div><div class="line">                    hiTail.next = e;</div><div class="line">                hiTail = e;</div><div class="line">                ++hc;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (loHead != <span class="keyword">null</span>) &#123;<span class="comment">////低位元素数量若&lt;=链表还原阈值，那需要将反树化，将树重新变成链表结构</span></div><div class="line">            <span class="keyword">if</span> (lc &lt;= UNTREEIFY_THRESHOLD)</div><div class="line">                tab[index] = loHead.untreeify(map);</div><div class="line">            <span class="keyword">else</span> &#123;</div><div class="line">                tab[index] = loHead;</div><div class="line">                <span class="keyword">if</span> (hiHead != <span class="keyword">null</span>) <span class="comment">// (else is already treeified)</span></div><div class="line">                    loHead.treeify(tab);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (hiHead != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">if</span> (hc &lt;= UNTREEIFY_THRESHOLD)</div><div class="line">                tab[index + bit] = hiHead.untreeify(map);</div><div class="line">            <span class="keyword">else</span> &#123;</div><div class="line">                tab[index + bit] = hiHead;</div><div class="line">                <span class="keyword">if</span> (loHead != <span class="keyword">null</span>)</div><div class="line">                    hiHead.treeify(tab);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<h3 id="函数声明"><a href="#函数声明" class="headerlink" title="函数声明"></a>函数声明</h3><p>和1.7版本一致</p>
+<h3 id="关键属性"><a href="#关键属性" class="headerlink" title="关键属性"></a>关键属性</h3><ul>
+<li>static final int TREEIFY_THRESHOLD = 8;<br>&emsp;&emsp;一个桶链表树化的阈值：<br>1.当桶中元素个数大于等于这个值时，将链表转换为红黑树<br>2.该值必须大于2且至少为8，避免频繁转换导致效率不高<br>3.默认为8，即当新增元素造成链表长度变成8时，自动转换为红黑树  </li>
+<li>static final int UNTREEIFY_THRESHOLD = 6;<br>&emsp;&emsp;红黑树还原列表阈值：<br>1.当扩容时，桶中元素个数小于这个值，就会把树形的桶元素还原（切分）为链表<br>2.该值应小于TREEIFY_THRESHOLD且至少为 6，避免频繁转换导致效率不高  </li>
+<li>static final int MIN_TREEIFY_CAPACITY = 64;<br>&emsp;&emsp;哈希表的最小树形化容量：<br>1.当哈希表中的容量大于该值时，表中的桶才能进行树形化，否则桶内元素太多时会扩容，而不是树形化<br>2.为了避免进行扩容、树形化选择的冲突，这个值不能小于 4 * TREEIFY_THRESHOLD.  <h3 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h3>HashMap遵循集合框架的约束，提供了一个参数为空的构造函数与有一个参数且参数类型为Map的构造函数。空构造函数，最终还是调用如下方法。分析带参数的构造函数。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Constructs an empty &lt;tt&gt;HashMap&lt;/tt&gt; with the specified initial</div><div class="line">     * capacity and load factor.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span>  initialCapacity the initial capacity</div><div class="line">     * <span class="doctag">@param</span>  loadFactor      the load factor</div><div class="line">     * <span class="doctag">@throws</span> IllegalArgumentException if the initial capacity is negative</div><div class="line">     *         or the load factor is nonpositive</div><div class="line">     * 容量根据阈值进行换算        </div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HashMap</span><span class="params">(<span class="keyword">int</span> initialCapacity, <span class="keyword">float</span> loadFactor)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (initialCapacity &lt; <span class="number">0</span>)</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Illegal initial capacity: "</span> +</div><div class="line">                                               initialCapacity);</div><div class="line">        <span class="keyword">if</span> (initialCapacity &gt; MAXIMUM_CAPACITY)</div><div class="line">            initialCapacity = MAXIMUM_CAPACITY;</div><div class="line">        <span class="keyword">if</span> (loadFactor &lt;= <span class="number">0</span> || Float.isNaN(loadFactor))</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Illegal load factor: "</span> +</div><div class="line">                                               loadFactor);</div><div class="line">        <span class="keyword">this</span>.loadFactor = loadFactor;</div><div class="line">        <span class="keyword">this</span>.threshold = tableSizeFor(initialCapacity);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<h3 id="公共函数"><a href="#公共函数" class="headerlink" title="公共函数"></a>公共函数</h3><p><strong>函数：</strong>tableSizeFor(int cap)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">     * Returns a power of two size for the given target capacity.</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">tableSizeFor</span><span class="params">(<span class="keyword">int</span> cap)</span> </span>&#123;</div><div class="line">        <span class="keyword">int</span> n = cap - <span class="number">1</span>;</div><div class="line">        n |= n &gt;&gt;&gt; <span class="number">1</span>;</div><div class="line">        n |= n &gt;&gt;&gt; <span class="number">2</span>;</div><div class="line">        n |= n &gt;&gt;&gt; <span class="number">4</span>;</div><div class="line">        n |= n &gt;&gt;&gt; <span class="number">8</span>;</div><div class="line">        n |= n &gt;&gt;&gt; <span class="number">16</span>;</div><div class="line">        <span class="keyword">return</span> (n &lt; <span class="number">0</span>) ? <span class="number">1</span> : (n &gt;= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + <span class="number">1</span>;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>函数分析：<br><strong>作用：</strong>返回不小于参数的2的整数次幂<br><strong>原理：</strong>将参数二进制后，找到为1的最高位，从最高位开始依次赋值为1，最后加1即可。<br><strong>注意：</strong>  </p>
+<ul>
+<li>int n = cap - 1 原因：如果参数为2的整数次幂，不减1就会导致得到的数不是参数本身，而是参数的二倍。  </li>
+<li>n |= n &gt;&gt;&gt; 1 原理：右移1位后和自身取或，高位开始的两位变为“11”，再次右移2位和自身取或，就会高位形成“11111”，依次进行。由于java整数最多32位，进行到右移16位，足以保证所有的数返回从高位到最低位都为1.  </li>
+</ul>
+<p><strong>函数：</strong>resize()</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div></pre></td><td class="code"><pre><div class="line"> <span class="comment">/**</span></div><div class="line">  * Initializes or doubles table size.  If null, allocates in accord with initial capacity</div><div class="line">  * target held in field threshold. Otherwise, because we are using power-of-two expansion,</div><div class="line">  * the elements from each bin must either stay at same index, or move with a power of two</div><div class="line">  * offset in the new table.</div><div class="line">  * 初始化Map或2倍扩容，且会均匀的把之前的冲突的节点分散到新的桶中</div><div class="line">  *     当Map为空时，将分配与阈值一样大小的容量</div><div class="line">  *     当Map不为空时，由于2次幂扩容，元素位置会产生两种情况</div><div class="line">  *        1.要么元素所在位置不变</div><div class="line">  *        2.要么元素所在位置变动：向右位移2次幂位置</div><div class="line">  * <span class="doctag">@return</span> the table</div><div class="line">  * 该函数分析来自参考文献1</div><div class="line">  */</div><div class="line"><span class="keyword">final</span> Node&lt;K,V&gt;[] resize() &#123;</div><div class="line">    Node&lt;K,V&gt;[] oldTab = table;<span class="comment">//由于新数组会覆盖旧数组，所以要临时先备份一份，用于对新数组重新赋值</span></div><div class="line">    <span class="keyword">int</span> oldCap = (oldTab == <span class="keyword">null</span>) ? <span class="number">0</span> : oldTab.length;</div><div class="line">    <span class="keyword">int</span> oldThr = threshold;</div><div class="line">    <span class="keyword">int</span> newCap, newThr = <span class="number">0</span>;</div><div class="line">    <span class="keyword">if</span> (oldCap &gt; <span class="number">0</span>) &#123;<span class="comment">//当Map不为空时</span></div><div class="line">        <span class="comment">//临界处理：最大值</span></div><div class="line">        <span class="keyword">if</span> (oldCap &gt;= MAXIMUM_CAPACITY) &#123;</div><div class="line">            threshold = Integer.MAX_VALUE;<span class="comment">//最大值其实是Integer的最大值</span></div><div class="line">            <span class="keyword">return</span> oldTab;</div><div class="line">        &#125;</div><div class="line">        <span class="comment">//若2倍容量 &lt; MAXIMUM_CAPACITY 同时 原容量&gt;=默认容量(即16)，那么就扩容2倍</span></div><div class="line">        <span class="keyword">else</span> <span class="keyword">if</span> ((newCap = oldCap &lt;&lt; <span class="number">1</span>) &lt; MAXIMUM_CAPACITY &amp;&amp; oldCap &gt;= DEFAULT_INITIAL_CAPACITY)</div><div class="line">            newThr = oldThr &lt;&lt; <span class="number">1</span>; <span class="comment">// double threshold  阈值直接两倍（容量都是根据阈值来的）</span></div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (oldThr &gt; <span class="number">0</span>)&#123;<span class="comment">//当Map为空时，需要判断阈值是否&gt;0</span></div><div class="line">        newCap = oldThr;<span class="comment">//阈值即新容量（注意：初始化时候就是执行该操作完成容量赋值）</span></div><div class="line">        <span class="comment">// initial capacity was placed in threshold（容量都是根据阈值来的）</span></div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">//当Map为空，且阈值不是大于0（即无效阈值），那么就使用默认值</span></div><div class="line">        <span class="comment">// zero initial threshold signifies using defaults</span></div><div class="line">        newCap = DEFAULT_INITIAL_CAPACITY;<span class="comment">//1 &lt;&lt; 4 = 16 </span></div><div class="line">        newThr = (<span class="keyword">int</span>)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);<span class="comment">//0.75 * 16 = 12</span></div><div class="line">    &#125;</div><div class="line">    <span class="comment">//当新阈值没有被重置时，需要根据 新容量和负载因子 重新计算出新的阈值</span></div><div class="line">    <span class="comment">//注意：初始化的时候，阈值会被重置，即此时 阈值！=容量 ，容量已经在(oldThr &gt; 0)时重置过了</span></div><div class="line">    <span class="keyword">if</span> (newThr == <span class="number">0</span>) &#123;</div><div class="line">        <span class="comment">//等同于1.7版本：threshold = (int)Math.min(capacity * loadFactor, MAXIMUM_CAPACITY + 1);</span></div><div class="line">        <span class="keyword">float</span> ft = (<span class="keyword">float</span>)newCap * loadFactor;</div><div class="line">        newThr = (newCap &lt; MAXIMUM_CAPACITY &amp;&amp; ft &lt; (<span class="keyword">float</span>)MAXIMUM_CAPACITY ?</div><div class="line">                      (<span class="keyword">int</span>)ft : Integer.MAX_VALUE);</div><div class="line">    &#125;</div><div class="line">    threshold = newThr;<span class="comment">//重置给真实阈值</span></div><div class="line">    <span class="meta">@SuppressWarnings</span>(&#123;<span class="string">"rawtypes"</span>,<span class="string">"unchecked"</span>&#125;)</div><div class="line">        Node&lt;K,V&gt;[] newTab = (Node&lt;K,V&gt;[])<span class="keyword">new</span> Node[newCap];<span class="comment">//新建一个新容量的Node数组</span></div><div class="line">    table = newTab;<span class="comment">//覆盖原数组（第一行已经备份了）</span></div><div class="line">    <span class="comment">//当原数组非空，需要对新数组重新填充</span></div><div class="line">    <span class="keyword">if</span> (oldTab != <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="comment">//遍历</span></div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; oldCap; ++j) &#123;</div><div class="line">            Node&lt;K,V&gt; e;<span class="comment">//用于备份当前节点</span></div><div class="line">            <span class="comment">//若该数组下标位置非空</span></div><div class="line">            <span class="keyword">if</span> ((e = oldTab[j]) != <span class="keyword">null</span>) &#123;</div><div class="line">                oldTab[j] = <span class="keyword">null</span>;<span class="comment">//先把原数组的当前位置清空，因为已经备份了  help gc</span></div><div class="line">                <span class="keyword">if</span> (e.next == <span class="keyword">null</span>)<span class="comment">//当前桶即非链表也非红黑树</span></div><div class="line">                    newTab[e.hash &amp; (newCap - <span class="number">1</span>)] = e;<span class="comment">//位置可能不变或移动2次幂，跟newCap-1有关</span></div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (e <span class="keyword">instanceof</span> TreeNode)<span class="comment">//若当前桶是树节点，需要对树进行切分</span></div><div class="line">                    ((TreeNode&lt;K,V&gt;)e).split(<span class="keyword">this</span>, newTab, j, oldCap);</div><div class="line">                <span class="keyword">else</span> &#123; <span class="comment">// preserve order 当前桶是链表，要保持顺序 1.7的会倒置</span></div><div class="line">                    <span class="comment">//扩容后，新数组中的链表顺序依然与旧数组中的链表顺序保持一致!!!</span></div><div class="line">                    Node&lt;K,V&gt; loHead = <span class="keyword">null</span>, loTail = <span class="keyword">null</span>;<span class="comment">//lo=low，表示低位（即数组前半部分的链表）</span></div><div class="line">                    Node&lt;K,V&gt; hiHead = <span class="keyword">null</span>, hiTail = <span class="keyword">null</span>;<span class="comment">//hi=high，表示高位（即数组后半部分的链表）</span></div><div class="line">                    Node&lt;K,V&gt; next;</div><div class="line">                    <span class="comment">//遍历当前桶的链表</span></div><div class="line">                    <span class="comment">//1.8:是尾插入法，先来的留在数组上，后来的链在尾上（遍历时是先进先出）</span></div><div class="line">                    <span class="keyword">do</span> &#123;</div><div class="line">                        next = e.next;</div><div class="line">                        <span class="comment">//根据e.hash &amp; oldCap是否为零将原链表拆分成2个链表</span></div><div class="line">                        <span class="comment">//判断当前位置是否发生变动 0则没变 即保留在原链表中不需要移动</span></div><div class="line">                        <span class="keyword">if</span> ((e.hash &amp; oldCap) == <span class="number">0</span>) &#123;</div><div class="line">                           <span class="comment">//原索引 在数组前半部分处理</span></div><div class="line">                           <span class="comment">//若队尾为空，当前元素即是队首元素（也就是第一个插入的元素），保证先进先出</span></div><div class="line">                            <span class="keyword">if</span> (loTail == <span class="keyword">null</span>) </div><div class="line">                                loHead = e;</div><div class="line">                            <span class="keyword">else</span></div><div class="line">                            <span class="comment">//若队尾不为空，当前元素链接到原队尾元素后面，保证先进先出</span></div><div class="line">                                loTail.next = e;</div><div class="line">                            loTail = e;<span class="comment">//为了保证插入顺序不变，当前元素都需先设置为队尾元素</span></div><div class="line">                        &#125;</div><div class="line">                        <span class="comment">//原索引+oldCap 否则移动到"原索引+oldCap"的新链表中</span></div><div class="line">                        <span class="keyword">else</span> &#123;</div><div class="line">                            <span class="comment">//在数组后半部分处理</span></div><div class="line">                            <span class="keyword">if</span> (hiTail == <span class="keyword">null</span>)</div><div class="line">                                hiHead = e;</div><div class="line">                            <span class="keyword">else</span></div><div class="line">                                hiTail.next = e;</div><div class="line">                            hiTail = e;<span class="comment">//为了保证插入顺序不变，当前元素都需先设置为队尾元素</span></div><div class="line">                        &#125;</div><div class="line">                    &#125; <span class="keyword">while</span> ((e = next) != <span class="keyword">null</span>);</div><div class="line">                    <span class="comment">//原索引放到原桶中</span></div><div class="line">                    <span class="keyword">if</span> (loTail != <span class="keyword">null</span>) &#123;<span class="comment">//如果队尾元素非空</span></div><div class="line">                        loTail.next = <span class="keyword">null</span>;<span class="comment">//loTail此时就是队尾元素</span></div><div class="line">                        newTab[j] = loHead;<span class="comment">//队首是放在数组里面的</span></div><div class="line">                    &#125;</div><div class="line">                    <span class="comment">//原索引+oldCap放到新桶中</span></div><div class="line">                    <span class="keyword">if</span> (hiTail != <span class="keyword">null</span>) &#123;<span class="comment">//如果队尾元素非空</span></div><div class="line">                        hiTail.next = <span class="keyword">null</span>;<span class="comment">//hiTail此时就是队尾元素</span></div><div class="line">                        newTab[j + oldCap] = hiHead;<span class="comment">//队首是放在数组里面的</span></div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> newTab;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p> 分析：<br> 扩容2倍以后，计算索引方法原理：<br> 扩容后length-1的值，是在原来基础上高位加1，这样hashcode&amp;(length-1)各位有所变得的只有最高位。如果hashcode对应的最高位0，最索引不变；反之，在原来的基础上+ “10000···”，其中“10000···” == old_ length.  </p>
+<p><strong>函数：</strong>treeifyBin(Node<k,v>[] tab, int hash)</k,v></p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"> <span class="comment">/**</span></div><div class="line">  * Replaces all linked nodes in bin at index for given hash unless</div><div class="line">  * table is too small, in which case resizes instead.</div><div class="line">  * 桶内链表树化：将桶内所有的链表节点替换成红黑树节点，当元素数量不够树化时会重新resize</div><div class="line">  * 注意：不是整个Map转换，只是当前桶！</div><div class="line">  * 该函数分析来自参考1</div><div class="line">  */</div><div class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">treeifyBin</span><span class="params">(Node&lt;K,V&gt;[] tab, <span class="keyword">int</span> hash)</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> n, index; Node&lt;K,V&gt; e;</div><div class="line">    <span class="comment">//当数组为空 或者 数组长度 &lt; 树化阈值（64）时需要执行resize方法，重新决定内部的数据结构类型</span></div><div class="line">    <span class="keyword">if</span> (tab == <span class="keyword">null</span> || (n = tab.length) &lt; MIN_TREEIFY_CAPACITY)</div><div class="line">        resize();</div><div class="line">        <span class="comment">//否则，需要树化</span></div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> ((e = tab[index = (n - <span class="number">1</span>) &amp; hash]) != <span class="keyword">null</span>) &#123;</div><div class="line">        TreeNode&lt;K,V&gt; hd = <span class="keyword">null</span>, tl = <span class="keyword">null</span>;<span class="comment">//hd指的是head，tl指的是tail，分别指向红黑树的头、尾节点</span></div><div class="line">        <span class="comment">//从链表头节点开始遍历链表，头节点是存放在数组中的</span></div><div class="line">        <span class="keyword">do</span> &#123;</div><div class="line">            <span class="comment">//新建一个树形节点，内容和当前链表节点e保持一致</span></div><div class="line">            <span class="comment">//此时next默认为null，会在后面按顺序重新对next赋值</span></div><div class="line">            TreeNode&lt;K,V&gt; p = replacementTreeNode(e, <span class="keyword">null</span>);</div><div class="line">            <span class="keyword">if</span> (tl == <span class="keyword">null</span>)<span class="comment">//当尾节点为空，即当前节点应为头节点（因为就这一个节点）</span></div><div class="line">                hd = p;</div><div class="line">            <span class="keyword">else</span> &#123;</div><div class="line">                p.prev = tl;<span class="comment">//prev被赋值，主要是记录当前节点的上一个节点</span></div><div class="line">                tl.next = p;<span class="comment">//p指向之前尾节点的next，保持插入顺序</span></div><div class="line">            &#125;</div><div class="line">            tl = p;<span class="comment">//当前节点设置为尾节点，保持插入顺序</span></div><div class="line">        &#125; <span class="keyword">while</span> ((e = e.next) != <span class="keyword">null</span>);</div><div class="line">        <span class="comment">//桶内第一个元素即链表头节点，并放在数组中</span></div><div class="line">        <span class="keyword">if</span> ((tab[index] = hd) != <span class="keyword">null</span>)</div><div class="line">            hd.treeify(tab);<span class="comment">//从头节点开始遍历，将整个桶树化</span></div><div class="line">            <span class="comment">//注意头节点并不一定是树的根节点：树化后的根节点会重新设置为头节点，即tab[index]=root</span></div><div class="line">            <span class="comment">//具体参见moveRootToFront()</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="增加操作"><a href="#增加操作" class="headerlink" title="增加操作"></a>增加操作</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">    * Implements Map.put and related methods</div><div class="line">    *</div><div class="line">    * <span class="doctag">@param</span> hash hash for key</div><div class="line">    * <span class="doctag">@param</span> key the key</div><div class="line">    * <span class="doctag">@param</span> value the value to put</div><div class="line">    * <span class="doctag">@param</span> onlyIfAbsent if true, don't change existing value</div><div class="line">    * <span class="doctag">@param</span> evict if false, the table is in creation mode.</div><div class="line">    * <span class="doctag">@return</span> previous value, or null if none</div><div class="line">    * 增加元素操作</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">final</span> V <span class="title">putVal</span><span class="params">(<span class="keyword">int</span> hash, K key, V value, <span class="keyword">boolean</span> onlyIfAbsent,</span></span></div><div class="line">                  <span class="keyword">boolean</span> evict) &#123;</div><div class="line">       Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; p; <span class="keyword">int</span> n, i;</div><div class="line">       <span class="keyword">if</span> ((tab = table) == <span class="keyword">null</span> || (n = tab.length) == <span class="number">0</span>)</div><div class="line">           n = (tab = resize()).length;<span class="comment">//扩容操作，设置为默认容量</span></div><div class="line">       <span class="keyword">if</span> ((p = tab[i = (n - <span class="number">1</span>) &amp; hash]) == <span class="keyword">null</span>)<span class="comment">//桶中无元素，直接加入</span></div><div class="line">           tab[i] = newNode(hash, key, value, <span class="keyword">null</span>);</div><div class="line">       <span class="keyword">else</span> &#123;</div><div class="line">           Node&lt;K,V&gt; e; K k;</div><div class="line">           <span class="keyword">if</span> (p.hash == hash &amp;&amp;</div><div class="line">               ((k = p.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k))))</div><div class="line">               e = p;</div><div class="line">           <span class="keyword">else</span> <span class="keyword">if</span> (p <span class="keyword">instanceof</span> TreeNode)<span class="comment">//红黑树加入节点</span></div><div class="line">               e = ((TreeNode&lt;K,V&gt;)p).putTreeVal(<span class="keyword">this</span>, tab, hash, key, value);</div><div class="line">           <span class="keyword">else</span> &#123;</div><div class="line">               <span class="keyword">for</span> (<span class="keyword">int</span> binCount = <span class="number">0</span>; ; ++binCount) &#123;</div><div class="line">                   <span class="keyword">if</span> ((e = p.next) == <span class="keyword">null</span>) &#123;</div><div class="line">                       p.next = newNode(hash, key, value, <span class="keyword">null</span>);</div><div class="line">                       <span class="keyword">if</span> (binCount &gt;= TREEIFY_THRESHOLD - <span class="number">1</span>) <span class="comment">// -1 for 1st</span></div><div class="line">                           treeifyBin(tab, hash);<span class="comment">//超出阈值，树化</span></div><div class="line">                       <span class="keyword">break</span>;</div><div class="line">                   &#125;</div><div class="line">                   </div><div class="line">                   <span class="keyword">if</span> (e.hash == hash &amp;&amp;</div><div class="line">                       ((k = e.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k))))</div><div class="line">                       <span class="keyword">break</span>;</div><div class="line">                   p = e;</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123; <span class="comment">// existing mapping for key  //已存在直接返回</span></div><div class="line">               V oldValue = e.value;</div><div class="line">               <span class="keyword">if</span> (!onlyIfAbsent || oldValue == <span class="keyword">null</span>)</div><div class="line">                   e.value = value;</div><div class="line">               afterNodeAccess(e);</div><div class="line">               <span class="keyword">return</span> oldValue;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       ++modCount;</div><div class="line">       <span class="keyword">if</span> (++size &gt; threshold)</div><div class="line">           resize();</div><div class="line">       afterNodeInsertion(evict);<span class="comment">//添加回调Callbacks to allow LinkedHashMap post-actions</span></div><div class="line">       <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<h2 id="删除操作-1"><a href="#删除操作-1" class="headerlink" title="删除操作"></a>删除操作</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">    * Implements Map.remove and related methods</div><div class="line">    *</div><div class="line">    * <span class="doctag">@param</span> hash hash for key</div><div class="line">    * <span class="doctag">@param</span> key the key</div><div class="line">    * <span class="doctag">@param</span> value the value to match if matchValue, else ignored</div><div class="line">    * <span class="doctag">@param</span> matchValue if true only remove if value is equal</div><div class="line">    * <span class="doctag">@param</span> movable if false do not move other nodes while removing</div><div class="line">    * <span class="doctag">@return</span> the node, or null if none</div><div class="line">    * 移除操作</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">final</span> Node&lt;K,V&gt; <span class="title">removeNode</span><span class="params">(<span class="keyword">int</span> hash, Object key, Object value,</span></span></div><div class="line">                              <span class="keyword">boolean</span> matchValue, <span class="keyword">boolean</span> movable) &#123;</div><div class="line">       Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; p; <span class="keyword">int</span> n, index;</div><div class="line">       <span class="keyword">if</span> ((tab = table) != <span class="keyword">null</span> &amp;&amp; (n = tab.length) &gt; <span class="number">0</span> &amp;&amp;</div><div class="line">           (p = tab[index = (n - <span class="number">1</span>) &amp; hash]) != <span class="keyword">null</span>) &#123;<span class="comment">//桶中存在元素</span></div><div class="line">           Node&lt;K,V&gt; node = <span class="keyword">null</span>, e; K k; V v;</div><div class="line">           <span class="keyword">if</span> (p.hash == hash &amp;&amp;</div><div class="line">               ((k = p.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k))))<span class="comment">//首元素即是</span></div><div class="line">               node = p;</div><div class="line">           <span class="keyword">else</span> <span class="keyword">if</span> ((e = p.next) != <span class="keyword">null</span>) &#123;</div><div class="line">               <span class="keyword">if</span> (p <span class="keyword">instanceof</span> TreeNode)</div><div class="line">                   node = ((TreeNode&lt;K,V&gt;)p).getTreeNode(hash, key);<span class="comment">//红黑树查找</span></div><div class="line">               <span class="keyword">else</span> &#123;<span class="comment">//链表查找</span></div><div class="line">                   <span class="keyword">do</span> &#123;</div><div class="line">                       <span class="keyword">if</span> (e.hash == hash &amp;&amp;</div><div class="line">                           ((k = e.key) == key ||</div><div class="line">                            (key != <span class="keyword">null</span> &amp;&amp; key.equals(k)))) &#123;</div><div class="line">                           node = e;</div><div class="line">                           <span class="keyword">break</span>;</div><div class="line">                       &#125;</div><div class="line">                       p = e;</div><div class="line">                   &#125; <span class="keyword">while</span> ((e = e.next) != <span class="keyword">null</span>);</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">if</span> (node != <span class="keyword">null</span> &amp;&amp; (!matchValue || (v = node.value) == value ||</div><div class="line">                                (value != <span class="keyword">null</span> &amp;&amp; value.equals(v)))) &#123;</div><div class="line">               <span class="keyword">if</span> (node <span class="keyword">instanceof</span> TreeNode)</div><div class="line">                   ((TreeNode&lt;K,V&gt;)node).removeTreeNode(<span class="keyword">this</span>, tab, movable);<span class="comment">//红黑树删除</span></div><div class="line">               <span class="keyword">else</span> <span class="keyword">if</span> (node == p)<span class="comment">//头节点</span></div><div class="line">                   tab[index] = node.next;</div><div class="line">               <span class="keyword">else</span></div><div class="line">                   p.next = node.next;<span class="comment">//修改后继</span></div><div class="line">               ++modCount;</div><div class="line">               --size;</div><div class="line">               afterNodeRemoval(node);</div><div class="line">               <span class="keyword">return</span> node;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<h2 id="修改操作"><a href="#修改操作" class="headerlink" title="修改操作"></a>修改操作</h2><p>修改操作等同于增加操作。</p>
+<h2 id="查询操作"><a href="#查询操作" class="headerlink" title="查询操作"></a>查询操作</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">    * Implements Map.get and related methods</div><div class="line">    *</div><div class="line">    * <span class="doctag">@param</span> hash hash for key</div><div class="line">    * <span class="doctag">@param</span> key the key</div><div class="line">    * <span class="doctag">@return</span> the node, or null if none</div><div class="line">    * 查找操作</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">final</span> Node&lt;K,V&gt; <span class="title">getNode</span><span class="params">(<span class="keyword">int</span> hash, Object key)</span> </span>&#123;</div><div class="line">       Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; first, e; <span class="keyword">int</span> n; K k;</div><div class="line">       <span class="keyword">if</span> ((tab = table) != <span class="keyword">null</span> &amp;&amp; (n = tab.length) &gt; <span class="number">0</span> &amp;&amp;</div><div class="line">           (first = tab[(n - <span class="number">1</span>) &amp; hash]) != <span class="keyword">null</span>) &#123;<span class="comment">//桶不为空</span></div><div class="line">           <span class="keyword">if</span> (first.hash == hash &amp;&amp; <span class="comment">// always check first node 头结点便是</span></div><div class="line">               ((k = first.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k))))</div><div class="line">               <span class="keyword">return</span> first;</div><div class="line">           <span class="keyword">if</span> ((e = first.next) != <span class="keyword">null</span>) &#123;</div><div class="line">               <span class="keyword">if</span> (first <span class="keyword">instanceof</span> TreeNode)</div><div class="line">                   <span class="keyword">return</span> ((TreeNode&lt;K,V&gt;)first).getTreeNode(hash, key);<span class="comment">//树查找</span></div><div class="line">               <span class="keyword">do</span> &#123;<span class="comment">//链表遍历查找</span></div><div class="line">                   <span class="keyword">if</span> (e.hash == hash &amp;&amp;</div><div class="line">                       ((k = e.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k))))</div><div class="line">                       <span class="keyword">return</span> e;</div><div class="line">               &#125; <span class="keyword">while</span> ((e = e.next) != <span class="keyword">null</span>);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>同1.7版本</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://www.zybuluo.com/kiraSally/note/836217" target="_blank" rel="external">https://www.zybuluo.com/kiraSally/note/836217</a><br><a href="http://blog.csdn.net/eson_15/article/details/51144079" target="_blank" rel="external">http://blog.csdn.net/eson_15/article/details/51144079</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/Collection/" rel="tag"># Collection</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/06/HashMap源码分析（1-7版本）/" rel="next" title="HashMap源码分析（1.7版本）">
+                <i class="fa fa-chevron-left"></i> HashMap源码分析（1.7版本）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="taoyongzhen" />
+          <p class="site-author-name" itemprop="name">taoyongzhen</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#红黑树介绍"><span class="nav-number">2.</span> <span class="nav-text">红黑树介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树特性"><span class="nav-number">2.1.</span> <span class="nav-text">红黑树特性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#左旋操作"><span class="nav-number">2.2.</span> <span class="nav-text">左旋操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#右旋操作"><span class="nav-number">2.3.</span> <span class="nav-text">右旋操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#插入操作"><span class="nav-number">2.4.</span> <span class="nav-text">插入操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除操作"><span class="nav-number">2.5.</span> <span class="nav-text">删除操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本要点"><span class="nav-number">3.</span> <span class="nav-text">基本要点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设计理念"><span class="nav-number">3.1.</span> <span class="nav-text">设计理念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#存储结构"><span class="nav-number">3.2.</span> <span class="nav-text">存储结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#成员函数-TreeNode"><span class="nav-number">3.3.</span> <span class="nav-text">成员函数(TreeNode)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数声明"><span class="nav-number">3.4.</span> <span class="nav-text">函数声明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关键属性"><span class="nav-number">3.5.</span> <span class="nav-text">关键属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构造函数"><span class="nav-number">3.6.</span> <span class="nav-text">构造函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#公共函数"><span class="nav-number">3.7.</span> <span class="nav-text">公共函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#增加操作"><span class="nav-number">4.</span> <span class="nav-text">增加操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#删除操作-1"><span class="nav-number">5.</span> <span class="nav-text">删除操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改操作"><span class="nav-number">6.</span> <span class="nav-text">修改操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查询操作"><span class="nav-number">7.</span> <span class="nav-text">查询操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">8.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">taoyongzhen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

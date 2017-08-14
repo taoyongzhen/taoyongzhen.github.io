@@ -93,18 +93,18 @@
 
 
 
-<meta name="description" content="概述HashMap是一个用”KEY”-“VALUE”来实现数据存储的类。可以依据”key”存储数据。也可以通过”key”去得到数据。所以你可以把HashMap当作一个字典。由于HashMap实现方式在jdk1.7和jdk1.8版本间做了较大修改，本文以jdk1.7版本展开分析，下一篇日志以jdk1.8版本分析，并对他们做比较、总结。   基本要点设计理念HashMap是一种基于哈希表（hash t">
+<meta name="description" content="概述HashMap是一个用”KEY”-“VALUE”来实现数据存储的类。可以依据”key”存储数据。也可以通过”key”去得到数据。所以你可以把HashMap当作一个字典。由于HashMap实现方式在jdk1.7和jdk1.8版本间做了较大修改，本文以jdk1.7版本展开分析，下一篇日志以jdk1.8版本分析，并对他们做比较、总结。">
 <meta name="keywords" content="Java,Collection">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HashMap源码分析（1.7版本）">
 <meta property="og:url" content="http://yoursite.com/2017/08/06/HashMap源码分析（1-7版本）/index.html">
 <meta property="og:site_name" content="陶永臻">
-<meta property="og:description" content="概述HashMap是一个用”KEY”-“VALUE”来实现数据存储的类。可以依据”key”存储数据。也可以通过”key”去得到数据。所以你可以把HashMap当作一个字典。由于HashMap实现方式在jdk1.7和jdk1.8版本间做了较大修改，本文以jdk1.7版本展开分析，下一篇日志以jdk1.8版本分析，并对他们做比较、总结。   基本要点设计理念HashMap是一种基于哈希表（hash t">
+<meta property="og:description" content="概述HashMap是一个用”KEY”-“VALUE”来实现数据存储的类。可以依据”key”存储数据。也可以通过”key”去得到数据。所以你可以把HashMap当作一个字典。由于HashMap实现方式在jdk1.7和jdk1.8版本间做了较大修改，本文以jdk1.7版本展开分析，下一篇日志以jdk1.8版本分析，并对他们做比较、总结。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-08-06T15:15:15.000Z">
+<meta property="og:updated_time" content="2017-08-06T15:17:41.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="HashMap源码分析（1.7版本）">
-<meta name="twitter:description" content="概述HashMap是一个用”KEY”-“VALUE”来实现数据存储的类。可以依据”key”存储数据。也可以通过”key”去得到数据。所以你可以把HashMap当作一个字典。由于HashMap实现方式在jdk1.7和jdk1.8版本间做了较大修改，本文以jdk1.7版本展开分析，下一篇日志以jdk1.8版本分析，并对他们做比较、总结。   基本要点设计理念HashMap是一种基于哈希表（hash t">
+<meta name="twitter:description" content="概述HashMap是一个用”KEY”-“VALUE”来实现数据存储的类。可以依据”key”存储数据。也可以通过”key”去得到数据。所以你可以把HashMap当作一个字典。由于HashMap实现方式在jdk1.7和jdk1.8版本间做了较大修改，本文以jdk1.7版本展开分析，下一篇日志以jdk1.8版本分析，并对他们做比较、总结。">
 
 
 
@@ -364,7 +364,7 @@
       
 
       
-        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>HashMap是一个用”KEY”-“VALUE”来实现数据存储的类。可以依据”key”存储数据。也可以通过”key”去得到数据。所以你可以把HashMap当作一个字典。<br>由于HashMap实现方式在<strong>jdk1.7</strong>和<strong>jdk1.8</strong>版本间做了较大修改，本文以<strong>jdk1.7</strong>版本展开分析，下一篇日志以<strong>jdk1.8</strong>版本分析，并对他们做比较、总结。  </p>
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>HashMap是一个用”KEY”-“VALUE”来实现数据存储的类。可以依据”key”存储数据。也可以通过”key”去得到数据。所以你可以把HashMap当作一个字典。<br>由于HashMap实现方式在<strong>jdk1.7</strong>和<strong>jdk1.8</strong>版本间做了较大修改，本文以<strong>jdk1.7</strong>版本展开分析，下一篇日志以<strong>jdk1.8</strong>版本分析，并对他们做比较、总结。<br><a id="more"></a></p>
 <h2 id="基本要点"><a href="#基本要点" class="headerlink" title="基本要点"></a>基本要点</h2><h3 id="设计理念"><a href="#设计理念" class="headerlink" title="设计理念"></a>设计理念</h3><p>HashMap是一种基于哈希表（hash table）实现的map，哈希表（也叫关联数组）一种通用的数据结构。其定义：通过把关键码值映射到表中一个位置来访问记录，以加快查找的速度。这个映射函数叫做散列函数，存放记录的数组叫做散列表。<br>其要素有二：  </p>
 <ul>
 <li>定义key到位置的映射函数，尽可能地使其均匀分布散列表；  </li>
@@ -487,6 +487,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2017/08/12/HashMap源码分析（1-8版本）/" rel="prev" title="HashMap源码分析（1.8版本）">
+                HashMap源码分析（1.8版本） <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -558,7 +562,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

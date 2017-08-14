@@ -106,7 +106,7 @@
 <meta property="og:image" content="http://yoursite.com/2017/07/29/Java-集合类概述/java_collection_list.png">
 <meta property="og:image" content="http://yoursite.com/2017/07/29/Java-集合类概述/java_collection_set.png">
 <meta property="og:image" content="http://yoursite.com/2017/07/29/Java-集合类概述/java_collection_map.png">
-<meta property="og:updated_time" content="2017-08-01T16:04:29.000Z">
+<meta property="og:updated_time" content="2017-08-06T15:18:53.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java 集合类概述">
 <meta name="twitter:description" content="框架概述首先需要理解集合的概念，集合是指由同类元素的整体。而java集合是指java提供的一套工具包，以方便用户的使用，包含了常用的数据结构：队列、链表、栈等。Java集合框架是指实现该工具包的一套规范，用来表示、操作集合，用以方便使用者理解、使用其中的数据结构。学习、使用每一类集合时，需要从以下几个维度进行把握：    基本操作：增删改查，注意支持重复元素、NULL元素处理等。   线程安全：是">
@@ -363,7 +363,8 @@
 <ul>
 <li>基本操作：增删改查，注意支持重复元素、NULL元素处理等。  </li>
 <li>线程安全：是不是支持多线程，以及实现多线程安全的方式。  </li>
-<li>效率: 空间复杂度和时间复杂度，包括基本操作的时间复杂度等。  <h2 id="设计理念"><a href="#设计理念" class="headerlink" title="设计理念"></a>设计理念</h2>主要的设计理念：提供一套小而美的API。能够友好支持新增数据结构，降低程序员的学习成本。<br>为了保证核心接口足够小、具有普适性，并不会区分该集合是否可变（mutability）,是否可更改（modifiability）,是否可改变大小（resizability）这些细微。例如，部分接口不支持某类操作，在是在实现时抛出UnsupportedOperationException即可表示集合不支持该操作。  <h2 id="框架类图"><a href="#框架类图" class="headerlink" title="框架类图"></a>框架类图</h2>Java集合主要可以划分为4个部分：List列表、Set集合、Map映射、工具类(Iterator迭代器、Enumeration枚举类、Arrays和Collections)。（下图来自网络).<br><img src="/2017/07/29/Java-集合类概述/java_collection.jpg" alt="集合框架类图"><br>下面依次简单介绍Collection和Map接口，其中Collection介绍List、Set和Queue接口。<h2 id="Collection接口"><a href="#Collection接口" class="headerlink" title="Collection接口"></a>Collection接口</h2>Collection接口作为集合类顶级接口，除了定义了基本的增删改查操作，还添加了clear()、size()等基本方法。这也符合其设计理念—定义一套小而全、具有普适作用的API。它是Queue、List和Set的父接口，包含他们公共的方法。<br><img src="/2017/07/29/Java-集合类概述/java_collection_fun.jpg" alt="Collection基本方法">  <h3 id="List接口"><a href="#List接口" class="headerlink" title="List接口"></a>List接口</h3>List接口通常表示一个列表（数组、队列、链表、栈等），其中的元素有序并且可以重复，常用实现类为ArrayList和LinkedList，另外还有不常用的Vector。  </li>
+<li>效率: 空间复杂度和时间复杂度，包括基本操作的时间复杂度等。 <a id="more"></a> 
+<h2 id="设计理念"><a href="#设计理念" class="headerlink" title="设计理念"></a>设计理念</h2>主要的设计理念：提供一套小而美的API。能够友好支持新增数据结构，降低程序员的学习成本。<br>为了保证核心接口足够小、具有普适性，并不会区分该集合是否可变（mutability）,是否可更改（modifiability）,是否可改变大小（resizability）这些细微。例如，部分接口不支持某类操作，在是在实现时抛出UnsupportedOperationException即可表示集合不支持该操作。  <h2 id="框架类图"><a href="#框架类图" class="headerlink" title="框架类图"></a>框架类图</h2>Java集合主要可以划分为4个部分：List列表、Set集合、Map映射、工具类(Iterator迭代器、Enumeration枚举类、Arrays和Collections)。（下图来自网络).<br><img src="/2017/07/29/Java-集合类概述/java_collection.jpg" alt="集合框架类图"><br>下面依次简单介绍Collection和Map接口，其中Collection介绍List、Set和Queue接口。<h2 id="Collection接口"><a href="#Collection接口" class="headerlink" title="Collection接口"></a>Collection接口</h2>Collection接口作为集合类顶级接口，除了定义了基本的增删改查操作，还添加了clear()、size()等基本方法。这也符合其设计理念—定义一套小而全、具有普适作用的API。它是Queue、List和Set的父接口，包含他们公共的方法。<br><img src="/2017/07/29/Java-集合类概述/java_collection_fun.jpg" alt="Collection基本方法">  <h3 id="List接口"><a href="#List接口" class="headerlink" title="List接口"></a>List接口</h3>List接口通常表示一个列表（数组、队列、链表、栈等），其中的元素有序并且可以重复，常用实现类为ArrayList和LinkedList，另外还有不常用的Vector。  </li>
 <li>AbstractCollection:针对顶级接口类Collection中成员方法提供部分实现，增加Collection子类代码复用。  </li>
 <li>List：有序集合的顶层接口，定义一些基本方法。  </li>
 <li>AbstractList：针对顶级有序集合接口类List中成员方法提供部分实现，增加List子类代码复用。  </li>
@@ -513,7 +514,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
