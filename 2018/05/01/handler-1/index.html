@@ -104,7 +104,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/05/01/handler-1/handler-main.jpg">
 <meta property="og:image" content="http://yoursite.com/2018/05/01/handler-1/handler-message.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/01/handler-1/handler-flow.png">
-<meta property="og:updated_time" content="2018-05-07T14:34:19.942Z">
+<meta property="og:updated_time" content="2018-05-07T14:38:21.110Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android消息机制Handler篇1">
 <meta name="twitter:description" content="一、概述在Android平台上，主要的通信机制有两种：Binder机制和消息机制（handler），前者用于跨进程通信，后者用于进程内部通信。Android系统的交互基本上是由二者合作完成的。首先由Binder完成跨进程消息交互，然后交由handler完成进程内部消息交互。例如Android四大组件Activity，Service，Broadcast, ContentProvider的启动交互过程">
@@ -374,9 +374,9 @@
 <li>Handler：消息的发送者（Handler.sendMessage）—类似于信件发送者和消息的响应者（Handler.handleMessage）—类似于信件处理者；  </li>
 <li>Message：消息的封装，可分为异步消息和同步消息 — 类似于信件；  </li>
 <li>MessageQueue：消息队列的主要功能向消息池投递消息(MessageQueue.enqueueMessage)和取走消息池的消息(MessageQueue.next) —类似于邮局，完成收取信件和分发信件；  </li>
-<li>Looper：不断循环执行(Looper.loop)，按分发机制将消息分发给目标处理者 —类似于邮递员，完成信件投递。<br>下面针对消息机制的各个小伙伴展开详细描述。</li>
+<li>Looper：不断循环执行(Looper.loop)，按分发机制将消息分发给目标处理者 —类似于邮递员，完成信件投递。<br>下面针对消息机制的各个小伙伴展开详细描述。  <a id="more"></a>
+<h2 id="三、Message"><a href="#三、Message" class="headerlink" title="三、Message"></a>三、Message</h2>Message是消息的封装。主要包含以下成员变量：  </li>
 </ul>
-<h2 id="三、Message"><a href="#三、Message" class="headerlink" title="三、Message"></a>三、Message</h2><p>Message是消息的封装。主要包含以下成员变量：  </p>
 <table>
 <thead>
 <tr>
