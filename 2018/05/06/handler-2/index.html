@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Handler," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="一、概述本篇是handler消息机制第二篇，专注于handler机制的native方法的介绍。鉴于笔者不懂c++知识，该篇仅为参考资料[1]和[2]的读书笔记，望读者见谅。 二、预备知识epoll是一种IO多路复用机制，可以同时监控多个描述符，当某个描述符就绪(读或写就绪)，则立刻通知相应程序进行读或写操作。handler获取不断消息，当前无消息可处理时，利用epoll机制进行阻塞，让出cpu，这">
+<meta name="keywords" content="Handler">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android消息机制Handler篇2">
+<meta property="og:url" content="http://yoursite.com/2018/05/06/handler-2/index.html">
+<meta property="og:site_name" content="陶永臻">
+<meta property="og:description" content="一、概述本篇是handler消息机制第二篇，专注于handler机制的native方法的介绍。鉴于笔者不懂c++知识，该篇仅为参考资料[1]和[2]的读书笔记，望读者见谅。 二、预备知识epoll是一种IO多路复用机制，可以同时监控多个描述符，当某个描述符就绪(读或写就绪)，则立刻通知相应程序进行读或写操作。handler获取不断消息，当前无消息可处理时，利用epoll机制进行阻塞，让出cpu，这">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2018/05/06/handler-2/handler_native_init.png">
+<meta property="og:image" content="http://yoursite.com/2018/05/06/handler-2/handler_native_destroy.png">
+<meta property="og:image" content="http://yoursite.com/2018/05/06/handler-2/handler_native_deal.png">
+<meta property="og:image" content="http://yoursite.com/2018/05/06/handler-2/handler_native_wake.png">
+<meta property="og:image" content="http://yoursite.com/2018/05/06/handler-2/handler_native_all.png">
+<meta property="og:updated_time" content="2018-05-07T14:31:36.589Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android消息机制Handler篇2">
+<meta name="twitter:description" content="一、概述本篇是handler消息机制第二篇，专注于handler机制的native方法的介绍。鉴于笔者不懂c++知识，该篇仅为参考资料[1]和[2]的读书笔记，望读者见谅。 二、预备知识epoll是一种IO多路复用机制，可以同时监控多个描述符，当某个描述符就绪(读或写就绪)，则立刻通知相应程序进行读或写操作。handler获取不断消息，当前无消息可处理时，利用epoll机制进行阻塞，让出cpu，这">
+<meta name="twitter:image" content="http://yoursite.com/2018/05/06/handler-2/handler_native_init.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/05/06/handler-2/"/>
+
+
+
+
+
+  <title>Android消息机制Handler篇2 | 陶永臻</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">陶永臻</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">不恋过去，不畏将来</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/06/handler-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="taoyongzhen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陶永臻">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android消息机制Handler篇2</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-06T18:31:12+08:00">
+                2018-05-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/Handler/" itemprop="url" rel="index">
+                    <span itemprop="name">Handler</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="一、概述"><a href="#一、概述" class="headerlink" title="一、概述"></a>一、概述</h2><p>本篇是handler消息机制第二篇，专注于handler机制的native方法的介绍。鉴于笔者不懂c++知识，该篇仅为参考资料[1]和[2]的读书笔记，望读者见谅。</p>
+<h2 id="二、预备知识"><a href="#二、预备知识" class="headerlink" title="二、预备知识"></a>二、预备知识</h2><p>epoll是一种IO多路复用机制，可以同时监控多个描述符，当某个描述符就绪(读或写就绪)，则立刻通知相应程序进行读或写操作。handler获取不断消息，当前无消息可处理时，利用epoll机制进行阻塞，让出cpu，这样就不会导致ui线程卡顿，进而引发anr问题。详见参考[3].</p>
+<h2 id="三、函数描述"><a href="#三、函数描述" class="headerlink" title="三、函数描述"></a>三、函数描述</h2><p>该部分简要描述native函数在整个消息机制中的作用。</p>
+<h3 id="3-1-函数nativeInit"><a href="#3-1-函数nativeInit" class="headerlink" title="3.1 函数nativeInit()"></a>3.1 函数<code>nativeInit()</code></h3><p>函数<code>nativeInit()</code>作用创建native消息机制。<br><img src="/2018/05/06/handler-2/handler_native_init.png" alt="Handler-nativeInit"></p>
+<h3 id="3-2-函数nativeDestroy-long-ptr"><a href="#3-2-函数nativeDestroy-long-ptr" class="headerlink" title="3.2 函数nativeDestroy(long ptr)"></a>3.2 函数<code>nativeDestroy(long ptr)</code></h3><p>函数<code>nativeDestroy(long ptr)</code>作用销毁native消息机制。<br><img src="/2018/05/06/handler-2/handler_native_destroy.png" alt="Handler-destroy"></p>
+<h3 id="3-3-函数nativePollOnce-long-ptr-int-timeoutMillis"><a href="#3-3-函数nativePollOnce-long-ptr-int-timeoutMillis" class="headerlink" title="3.3 函数nativePollOnce(long ptr,int timeoutMillis)"></a>3.3 函数<code>nativePollOnce(long ptr,int timeoutMillis)</code></h3><p>函数<code>nativePollOnce(long ptr, int timeoutMillis)</code>作用native消息处理机制。<br><img src="/2018/05/06/handler-2/handler_native_deal.png" alt="Handler-deal"></p>
+<h3 id="3-4-函数nativeWake-long-ptr"><a href="#3-4-函数nativeWake-long-ptr" class="headerlink" title="3.4 函数nativeWake(long ptr)"></a>3.4 函数<code>nativeWake(long ptr)</code></h3><p>函数<code>nativeWake(long ptr)</code>作用唤醒native消息机制。<br><img src="/2018/05/06/handler-2/handler_native_wake.png" alt="Handler-wake"></p>
+<h2 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h2><p>Android的handler消息机制由java层和native层两层消息机制构成，如图所示（图来自参考资料[1]）.<br><img src="/2018/05/06/handler-2/handler_native_all.png" alt="Handler-all"></p>
+<ul>
+<li>Java层可以发送Message，native层也可以发送.当然，不同层次的Message是放在不同层次的消息队列中，予以不同的方式处理；</li>
+<li>在Java层，每次尝试从队列中获取一个Message，而后dispatch它。而C++层的消息则尽量在一次pollOnce中集中处理完毕，这是它们的一点不同。</li>
+<li>消息处理流程是先处理Native Message，再处理Native Request，最后处理Java Message。理解了该流程，也就明白有时上层消息很少，但响应时间却较长的真正原因。</li>
+</ul>
+<h2 id="五、参考"><a href="#五、参考" class="headerlink" title="五、参考"></a>五、参考</h2><ol>
+<li><a href="http://gityuan.com/2015/12/27/handler-message-native/" target="_blank" rel="external">handler-java详解</a></li>
+<li><a href="https://my.oschina.net/youranhongcha/blog/492591" target="_blank" rel="external">handler详解</a> </li>
+<li><a href="http://gityuan.com/2015/12/06/linux_epoll/" target="_blank" rel="external">epoll知识</a></li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Handler/" rel="tag"># Handler</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/01/handler-1/" rel="next" title="Android消息机制Handler篇1">
+                <i class="fa fa-chevron-left"></i> Android消息机制Handler篇1
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="taoyongzhen" />
+          <p class="site-author-name" itemprop="name">taoyongzhen</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、概述"><span class="nav-number">1.</span> <span class="nav-text">一、概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、预备知识"><span class="nav-number">2.</span> <span class="nav-text">二、预备知识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、函数描述"><span class="nav-number">3.</span> <span class="nav-text">三、函数描述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-函数nativeInit"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 函数nativeInit()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-函数nativeDestroy-long-ptr"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 函数nativeDestroy(long ptr)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-函数nativePollOnce-long-ptr-int-timeoutMillis"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 函数nativePollOnce(long ptr,int timeoutMillis)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-函数nativeWake-long-ptr"><span class="nav-number">3.4.</span> <span class="nav-text">3.4 函数nativeWake(long ptr)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四、总结"><span class="nav-number">4.</span> <span class="nav-text">四、总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#五、参考"><span class="nav-number">5.</span> <span class="nav-text">五、参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">taoyongzhen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
