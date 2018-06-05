@@ -264,6 +264,221 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/03/MotionEvent/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="taoyongzhen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陶永臻">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/03/MotionEvent/" itemprop="url">Android触摸事件分发机制-MotionEvent篇</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-03T16:22:20+08:00">
+                2018-06-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/touch/" itemprop="url" rel="index">
+                    <span itemprop="name">touch</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>Android触摸事件分发机制不仅是Android开发体系中的重点也是难点，掌握好了事件分发机制也是我们解决自定义控件、view的滑动冲突等问题的基础。接下来我将通过一下几篇进行讨论。本篇主要分析触摸事件的主角MotionEvent的源码，方便下面几篇对Android触摸事件分发机制的讨论。</p>
+<h2 id="二、概述"><a href="#二、概述" class="headerlink" title="二、概述"></a>二、概述</h2><p>MotionEvent作为Touch事件的载体,记录Touch事件所有相关行为的数据。如下图所示：<br><img src="/2018/06/03/MotionEvent/MotionEvent-Main.png" alt="MotionEvent流程"> </p>
+<ol>
+<li>完整的单点触摸事件流程为：DOWN–&gt;MOVE–&gt;UP;  </li>
+<li>多点触摸事件流程为：DOWN–&gt;POINTER_DOWN–&gt;MOVE–&gt; POINTER_UP–&gt;UP。其中第一个手指按下为DOWN事件，而后手指按下为POINTER_DOWN。最后一个手指抬起为UP事件，其余手指抬起为POINTER_UP事件;  </li>
+<li>POINTER_DOWN 、POINTER_UP事件触发时，对应MotionEvent包含当前所有手指信息；  </li>
+<li>MOVE事件由手指移动触发。出于效率的考虑，会在一段时间内多次采样合并成一个MOVE事件。由于每一次采样均对应一份所有手指对应的Touch数据，因此该事件中就包含了多份Touch数据，并将最近采样的数据作为当前数据，其他数据存储为历史数据。<h2 id="二、事件类型"><a href="#二、事件类型" class="headerlink" title="二、事件类型"></a>二、事件类型</h2>这里只对触摸事件进行分析，像鼠标、轨迹球都不在讨论之列。下面以列表形式分析事件类型。<h2 id="2-1-事件分类"><a href="#2-1-事件分类" class="headerlink" title="2.1 事件分类"></a>2.1 事件分类</h2>| 事件类型 | 事件描述 |<br>| :————–: | :————:|<br>| ACTION_DOWN | 第一根手指接触到屏幕时触发 |<br>| ACTION_MOVE | 手指在屏幕上移动时触发 |<br>| ACTION_UP | 最后一根手指离开屏幕时触发 |<br>| ACTION_POINTER_DOWN | 有非主要的手指按下(即按下之前已有手指在屏幕上)|<br>| ACTION_POINTER_UP | 有非主要的手指抬起(即抬起之后还有手指在屏幕上) |<br>| ACTION_CANCEL | 事件被上层拦截时触发 |<br>| ACTION_OUTSIDE | 手指落在控件区域之外时触发。 |<br>这里需要对ACTION_CANCEL和ACTION_OUTSIDE事件进行补充说明。<br><strong>ACTION_CANCEL事件</strong>：该事件不是由用户手指触摸发出的，而是由系统发出的。触发时机：当父View决定处理触摸事件时，回收ChildView事件处理权的时候，为了触摸事件的完整性会对ChildView发送一个ACTION_CANCEL事件。下面介绍两种ACTION_CANCEL事件常见场景。  <blockquote>
+<p>场景一：手指触摸按钮区域（收到ACTION_DOWN，设置按下状态）—&gt;向按钮上下空白区域滑动（收到ACTION_MOVE）—&gt;滑出按钮区域（收到ACTION_CANCEL，恢复正常状态）。  </p>
+</blockquote>
+</li>
+</ol>
+<blockquote>
+<p>场景二：上层父布局RecyclerView，它收到了一个ACTION_DOWN事件，由于这个可能是点击事件，所以它先传递给对应ItemView，询问ItemView是否需要这个事件，然而接下来又收到一个ACTION_MOVE事件，且移动的方向和RecyclerView的可滑动方向一致，所以 RecyclerView判断这个事件是滚动事件，于是要收回事件处理权，这时候对应的ItemView会收到一个ACTION_CANCEL ，并且不会再收到后续事件。该部分内容来自参考资料[1]  </p>
+</blockquote>
+<p><strong>ACTION_OUTSIDE事件</strong>：该事件触发时机：当用户触摸视图区域之外时，视图收到ACTION_OUTSIDE事件。</p>
+<blockquote>
+<p>场景：Dialog 就是一个特殊的视图(没有占满屏幕大小的窗口)，在用户点击Dialog之外的区域时，能够接收到视图区域外的ACTION_OUTSIDE事件，除了 Dialog 之外，你最可能看到这个事件的场景是悬浮窗。想要接收到视图之外的事件需要一些特殊的设置，设置视图的 WindowManager 布局参数的 flags为FLAG_WATCH_OUTSIDE_TOUCH。该部分内容来自参考资料[1]  </p>
+</blockquote>
+<h2 id="2-2-事件标识"><a href="#2-2-事件标识" class="headerlink" title="2.2 事件标识"></a>2.2 事件标识</h2><p>这里直接以多点触控展开讨论，单点触控实质是单点触控一种特例。在讨论事件的标识之前，我们先说一下实际生活中，如何描述触摸事件。我们往往会这样说：第一根手指按下，第二根手指按下，接着第三根手指按下；第二根手指抬起，第三根手指抬起，最后一根手指抬起。<br>上述触摸事件描述依赖两个关键字：<strong>第X（1/2/3）</strong> + <strong>动作（按下/抬起）</strong>描述。据此，Android触摸事件可抽象为：<strong>index</strong> + <strong>action</strong>两部分组成。<br>int类型共32位(0x00000000)，Android工程师用最低8位(0x000000ff)表示事件类型，再往前的8位(0x0000ff00)表示事件索引。事件类型详见2.1。 </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 获取事件类型. 低版本实现</span></div><div class="line"><span class="keyword">int</span> action = event.getAction() &amp; MotionEvent.ACTION_MASK;</div><div class="line"><span class="comment">//高版本，使用native实现</span></div><div class="line"><span class="keyword">int</span> action = nativeGetAction(mNativePtr) &amp; ACTION_MASK;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 获取index，低版本实现</span></div><div class="line"><span class="keyword">int</span> index = (event.getAction() &amp; MotionEvent.ACTION_POINTER_INDEX_MASK)</div><div class="line">        &gt;&gt; MotionEvent.ACTION_POINTER_INDEX_SHIFT;        </div><div class="line"><span class="comment">// 获取index，使用native实现</span></div><div class="line"><span class="keyword">int</span> index = (nativeGetAction(mNativePtr) &amp; ACTION_POINTER_INDEX_MASK)</div><div class="line">                &gt;&gt; ACTION_POINTER_INDEX_SHIFT;</div></pre></td></tr></table></figure>
+<h2 id="2-3-事件索引"><a href="#2-3-事件索引" class="headerlink" title="2.3 事件索引"></a>2.3 事件索引</h2><p>这里讨论的是多点触控，为了区分众多手指，理所应当为触摸事件添加索引。在Android触摸事件中包含三套索引，分别是：pointId、pointerIndex和actionIndex。</p>
+<h3 id="2-3-1-pointId"><a href="#2-3-1-pointId" class="headerlink" title="2.3.1 pointId"></a>2.3.1 pointId</h3><p>pointId是手指不变标识，它贯穿于触摸事件的按下–移动–抬起整个生命周期。它具有以下性质：</p>
+<ol>
+<li>随触摸区域手指增多，成自然增长； </li>
+<li>不同手指的pointId不同；</li>
+<li>后加入触摸区域的手指，可复用pointId；</li>
+<li>其生命周期贯穿于整个手指的触摸事件。</li>
+</ol>
+<h3 id="2-3-2-actionIndex"><a href="#2-3-2-actionIndex" class="headerlink" title="2.3.2 actionIndex"></a>2.3.2 actionIndex</h3><p>actionIndex简单地说就是事件的索引，用以区分众多的按下事件或者抬起事件。<br>actionIndex获取方法见2.2。从中可以看出actionIndex对MOVE事件无效，原因：其一，Android触摸机制，无法准确区分MOVE事件由那根手指发出；其二，由于设备的灵敏性，各个手指按下后，都在不断地触发MOVE事件，也就没必要区分MOVE事件是由哪根手指发出。<br>其具有一下性质：</p>
+<ol>
+<li>从 0 开始，自动增长；</li>
+<li>up操作，依据添加顺序，计算其前面存在手指数，减1返回；</li>
+<li>down操作，判断是否存在可复用的pointId，存在，选择最小pointId，添加到对应位置；反之pointId+1；</li>
+<li>down操作actionIndex和pointId相等；up操作actionIndex小于 等于pointId。</li>
+</ol>
+<h3 id="2-3-3-pointerIndex"><a href="#2-3-3-pointerIndex" class="headerlink" title="2.3.3 pointerIndex"></a>2.3.3 pointerIndex</h3><p>pointerIndex是指触摸区域内手指的索引，它针对down、move和up事件维护触摸区域内所有手指索引，所以它的出现能够弥补actionIndex无法追踪move的遗憾。<br>其具有以下性质：</p>
+<ol>
+<li>不同手指pointerIndex在经过down和up操作后，是有所变化的；</li>
+<li>down和up操作时，pointerIndex和actionIndex相等的。</li>
+</ol>
+<h3 id="2-3-4-索引转换"><a href="#2-3-4-索引转换" class="headerlink" title="2.3.4 索引转换"></a>2.3.4 索引转换</h3><blockquote>
+<p><strong>pointerIndex&lt;–&gt;pointerIndex转换：</strong>   </p>
+</blockquote>
+<p>pointerIndex存在于down和up事件中，在这两类事件中：pointerIndex= pointerIndex  </p>
+<blockquote>
+<p><strong>pointId &lt;–&gt;pointerIndex转换：</strong> </p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">事件类型</th>
+<th style="text-align:center">事件描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">getPointerId(int pointerIndex)</td>
+<td style="text-align:center">依据索引，获取手指的唯一标识符ID</td>
+</tr>
+<tr>
+<td style="text-align:center">findPointerIndex(int pointerId)</td>
+<td style="text-align:center">通过标识获取到当前状态下索引</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-3-5-示例"><a href="#2-3-5-示例" class="headerlink" title="2.3.5 示例"></a>2.3.5 示例</h3><p><img src="/2018/06/03/MotionEvent/action-flow.png" alt="MotionEvent流程"><br>如图所示：<br>图1：四根手指依次在触摸区域按下；<br>图2：第二根手指抬起；<br>图3：剩余手指在滑动；<br>图4：再次，添加一根手指到触摸区域。此时，复用图2移除手指的id；<br>图5：第一根手指抬起；<br>图6：第二根手指抬起（后来添加的第五根手指）；<br>图7：剩余手指在滑动；<br>图8：第三根手指抬起； </p>
+<h2 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h2><p>该部分主要讲解Android触摸事件封装者MotionEvent，它是Android触摸机制的基础，接下来几篇会讲解Android触摸机制。</p>
+<h2 id="四、参考"><a href="#四、参考" class="headerlink" title="四、参考"></a>四、参考</h2><ol>
+<li><a href="http://www.gcssloop.com/customview/multi-touch" target="_blank" rel="external">MotionEvent详解</a></li>
+</ol>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/13/ThreadLocal/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1606,151 +1821,13 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/07/29/Java-集合类概述/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="taoyongzhen">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="陶永臻">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/07/29/Java-集合类概述/" itemprop="url">Java 集合类概述</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-29T22:37:29+08:00">
-                2017-07-29
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Collection/" itemprop="url" rel="index">
-                    <span itemprop="name">Collection</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="框架概述"><a href="#框架概述" class="headerlink" title="框架概述"></a>框架概述</h2><p>首先需要理解集合的概念，集合是指由同类元素的整体。而java集合是指java提供的一套工具包，以方便用户的使用，包含了常用的数据结构：队列、链表、栈等。Java集合框架是指实现该工具包的一套规范，用来表示、操作集合，用以方便使用者理解、使用其中的数据结构。<br>学习、使用每一类集合时，需要从以下几个维度进行把握：  </p>
-<ul>
-<li>基本操作：增删改查，注意支持重复元素、NULL元素处理等。  </li>
-<li>线程安全：是不是支持多线程，以及实现多线程安全的方式。  </li>
-<li>效率: 空间复杂度和时间复杂度，包括基本操作的时间复杂度等。</li></ul>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/07/29/Java-集合类概述/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+  </nav>
+
 
 
           </div>
@@ -1794,7 +1871,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">11</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1805,7 +1882,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-count">8</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -1816,7 +1893,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
