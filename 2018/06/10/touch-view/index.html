@@ -101,7 +101,7 @@
 <meta property="og:site_name" content="陶永臻">
 <meta property="og:description" content="一、概述Android中触摸事件由Activity、ViewGroup分发或者拦截交由View处理，按照事件的分发路线应该先分析ViewGroup事件分发、拦截机制。但是考虑ViewGroup自身也是View，其触摸事件可能调用的View的相关方法处理，所以优先分析View的事件处理机制。本文将对View中触摸事件相关的内容进行介绍。重点介绍事件分发函数dispatchTouchEvent(),">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-06-10T10:57:45.379Z">
+<meta property="og:updated_time" content="2018-06-13T12:43:01.881Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android触摸事件分发机制-View篇">
 <meta name="twitter:description" content="一、概述Android中触摸事件由Activity、ViewGroup分发或者拦截交由View处理，按照事件的分发路线应该先分析ViewGroup事件分发、拦截机制。但是考虑ViewGroup自身也是View，其触摸事件可能调用的View的相关方法处理，所以优先分析View的事件处理机制。本文将对View中触摸事件相关的内容进行介绍。重点介绍事件分发函数dispatchTouchEvent(),">
@@ -422,6 +422,7 @@
 <li><a href="http://timebridge.space/2016/09/04/Android-touchevent-process/" target="_blank" rel="external">源码分析</a></li>
 <li><a href="https://phantomvk.github.io/2016/10/18/Android_View/" target="_blank" rel="external">源码分析</a></li>
 <li><a href="http://wangkuiwu.github.io/2015/01/03/TouchEvent-View/" target="_blank" rel="external">源码分析</a></li>
+<li><a href="http://yummylau.com/2018/03/05/Android_2018-03-05_View%E4%BD%93%E7%B3%BB%E4%B9%8BTouch%E4%BA%8B%E4%BB%B6%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" target="_blank" rel="external">源码分析</a></li>
 </ol>
 
       
@@ -474,6 +475,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/06/12/touch-viewgroup/" rel="prev" title="Android触摸事件分发机制-ViewGroup篇">
+                Android触摸事件分发机制-ViewGroup篇 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -546,7 +551,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-count">15</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
