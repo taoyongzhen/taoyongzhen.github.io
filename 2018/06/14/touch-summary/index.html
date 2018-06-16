@@ -93,15 +93,20 @@
 
 
 
+<meta name="description" content="一、概述本文借鉴参考资料[1]等，结合自己的思考，尝试Android触摸事件分发机制进行概括和总结。 二、为什么要有事件分发机制这里简单讨论一下Android为什么设计事件分发机制？原因有二：其一，Android应用的界面往往是由多层嵌套的View组成，在多层重叠区域的触摸事件，到底交由哪个view处理；其二，复杂业务需求和View事件处理顺序不一致，会导致滑动冲突。事件分发机制能够提供对应的方法">
 <meta name="keywords" content="Touch">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android触摸事件分发机制-总结篇">
 <meta property="og:url" content="http://yoursite.com/2018/06/14/touch-summary/index.html">
 <meta property="og:site_name" content="陶永臻">
+<meta property="og:description" content="一、概述本文借鉴参考资料[1]等，结合自己的思考，尝试Android触摸事件分发机制进行概括和总结。 二、为什么要有事件分发机制这里简单讨论一下Android为什么设计事件分发机制？原因有二：其一，Android应用的界面往往是由多层嵌套的View组成，在多层重叠区域的触摸事件，到底交由哪个view处理；其二，复杂业务需求和View事件处理顺序不一致，会导致滑动冲突。事件分发机制能够提供对应的方法">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-06-14T11:46:34.225Z">
+<meta property="og:image" content="http://yoursite.com/2018/06/14/touch-summary/event-flow.png">
+<meta property="og:updated_time" content="2018-06-16T06:22:22.870Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android触摸事件分发机制-总结篇">
+<meta name="twitter:description" content="一、概述本文借鉴参考资料[1]等，结合自己的思考，尝试Android触摸事件分发机制进行概括和总结。 二、为什么要有事件分发机制这里简单讨论一下Android为什么设计事件分发机制？原因有二：其一，Android应用的界面往往是由多层嵌套的View组成，在多层重叠区域的触摸事件，到底交由哪个view处理；其二，复杂业务需求和View事件处理顺序不一致，会导致滑动冲突。事件分发机制能够提供对应的方法">
+<meta name="twitter:image" content="http://yoursite.com/2018/06/14/touch-summary/event-flow.png">
 
 
 
@@ -361,7 +366,71 @@
       
 
       
-        
+        <h2 id="一、概述"><a href="#一、概述" class="headerlink" title="一、概述"></a>一、概述</h2><p>本文借鉴参考资料[1]等，结合自己的思考，尝试Android触摸事件分发机制进行概括和总结。</p>
+<h2 id="二、为什么要有事件分发机制"><a href="#二、为什么要有事件分发机制" class="headerlink" title="二、为什么要有事件分发机制"></a>二、为什么要有事件分发机制</h2><p>这里简单讨论一下Android为什么设计事件分发机制？原因有二：其一，Android应用的界面往往是由多层嵌套的View组成，在多层重叠区域的触摸事件，到底交由哪个view处理；其二，复杂业务需求和View事件处理顺序不一致，会导致滑动冲突。事件分发机制能够提供对应的方法让用户灵活地处理滑动事件。<br><a id="more"></a></p>
+<h2 id="三、事件分发机制设计"><a href="#三、事件分发机制设计" class="headerlink" title="三、事件分发机制设计"></a>三、事件分发机制设计</h2><h3 id="3-1-事件流"><a href="#3-1-事件流" class="headerlink" title="3.1 事件流"></a>3.1 事件流</h3><p>Android触摸事件传递类似于冒泡，开始从底层向上浮起，一层一层上浮。在上浮过程中，低层可以决定是否让它上浮，不让上浮则戳破它；反之亦然。到达顶层，顶层也不愿意搭理它，它又自我下沉。<br><img src="/2018/06/14/touch-summary/event-flow.png" alt="MotionEvent事件流"><br>事件收集之后最先传递给Activity， 然后依次向上传递，如果没有任何View消费掉事件，那么这个事件会按照反方向回传，最终传回给Activity，如果最后 Activity 也没有处理，本次事件才会被抛弃。传递路线大致像字母<strong>“U”</strong>。<br>这是个责任链模式。如果我能处理就拦截下来自己干，如果自己不能处理或者不确定就交给责任链中下一个对象。通过上述讨论，上级对象就有这样的职责：任务分发职责+任务拦截责任+任务处理责任；最下级对象：任务分发职责+任务处理责任。注意，上级对象的任务分发职责是指把任务分发给下级；而最下级对象的任务分发职责，是指选择任务执行方式。这里可以将上下级对象映射到ViewGroup和View。</p>
+<h3 id="3-2-事件分发函数"><a href="#3-2-事件分发函数" class="headerlink" title="3.2 事件分发函数"></a>3.2 事件分发函数</h3><p>上面的讨论的职责，对应到ViewGroup和View上，表现为具体的函数。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">职责</th>
+<th style="text-align:center">函数</th>
+<th style="text-align:center">Activity</th>
+<th style="text-align:center">ViewGroup</th>
+<th style="text-align:center">View</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">事件分发</td>
+<td style="text-align:center">dispatchTouchEvent</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+</tr>
+<tr>
+<td style="text-align:center">事件拦截</td>
+<td style="text-align:center">onInterceptTouchEvent</td>
+<td style="text-align:center">N</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">N</td>
+</tr>
+<tr>
+<td style="text-align:center">事件处理</td>
+<td style="text-align:center">onTouchEvent</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+</tr>
+</tbody>
+</table>
+<p>说明：</p>
+<ol>
+<li>Activity作为原始的事件分发起点，如果Activity拦截了事件，会导致整个屏幕都无法响应事件，所以无需拦截事件。</li>
+<li>View最为事件传递的最末端，要么消费掉事件，要么不处理进行回传，根本没必要进行事件拦截。</li>
+</ol>
+<h3 id="3-3-事件分发举例"><a href="#3-3-事件分发举例" class="headerlink" title="3.3 事件分发举例"></a>3.3 事件分发举例</h3><p>这里的举例，参考资料[1]对其进行角色扮演，依据软件公司任务下发进行举例。</p>
+<blockquote>
+<p>Activity － 公司大老板<br>RootView － 项目经理<br>ViewGroupA － 技术小组长<br>View － 码农</p>
+</blockquote>
+<p>具体测试数据见资料[1]。</p>
+<h2 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h2><ol>
+<li>一个完整事件流是指从第一个手指触摸屏幕开始，到最后一根手指离开屏幕结束。这个过程中产生的一系列事件。该事件序列以ACTION_DOWN事件开始，中间可能经过若干个MOVE，以ACTION_UP事件结束。</li>
+<li>事件的传递过程是由内到外的，层层传递，即事件总是由父布局分发给子布局。</li>
+<li>如果View消费了ACTION_DOWN事件，那么通常情况下，这个事件序列中的后续事件也将直接交由其进行处。但其父View亦然有机会通过调用的<code>onInterceptTouchEvent</code>方法，对后续事件进行拦截。</li>
+<li>如果某个View它不消耗ACTION_DOWN事件，那么这个事件序列的后续事件再也不会到达该View。</li>
+<li>如果事件没有被所有View进行处理，那么最后将有Activity进行处理。</li>
+<li>整个事件分发是通过迭代完成的，上层view处理事件，将结果、通过父View的<code>dispatchTouchEvent</code>方法层层回调，最终将结果传递给Activity。</li>
+<li>View默认的onTouchEvent在View可点击的情况下，将会消耗事件，返回true；不可点击的情况下，则不消耗事件，返回false。</li>
+<li>如果某个ViewGroup的<code>onInterceptTouchEvent</code>返回为true，那么这个事件序列中的后续事件到达该View，不会再进行<code>onInterceptTouchEvent</code>的判断，而是直接交由它的<code>onTouchEvent</code>方法进行处理；而其父布局的仍然可以调用的<code>onInterceptTouchEvent</code>方法，对后续事件进行拦截。</li>
+<li>如果某个View接收了ACTION_DOWN之后，这个序列的后续事件中，被父View拦截处理了，为了保留事件的完整性，该View后续只会收到一个ACTION_CANCEL事件。</li>
+</ol>
+<h2 id="五、参考"><a href="#五、参考" class="headerlink" title="五、参考"></a>五、参考</h2><ol>
+<li><a href="http://www.gcssloop.com/customview/dispatch-touchevent-source" target="_blank" rel="external">设计理念</a></li>
+<li><a href="http://www.idtkm.com/2016/08/15/11、TouchEvent/" target="_blank" rel="external">示例分析</a></li>
+<li><a href="https://www.jianshu.com/p/e99b5e8bd67b" target="_blank" rel="external">图解</a></li>
+</ol>
+
       
     </div>
 
@@ -459,8 +528,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -522,6 +600,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、概述"><span class="nav-number">1.</span> <span class="nav-text">一、概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、为什么要有事件分发机制"><span class="nav-number">2.</span> <span class="nav-text">二、为什么要有事件分发机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、事件分发机制设计"><span class="nav-number">3.</span> <span class="nav-text">三、事件分发机制设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-事件流"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 事件流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-事件分发函数"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 事件分发函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-事件分发举例"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 事件分发举例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四、总结"><span class="nav-number">4.</span> <span class="nav-text">四、总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#五、参考"><span class="nav-number">5.</span> <span class="nav-text">五、参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
